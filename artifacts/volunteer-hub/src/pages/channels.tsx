@@ -62,9 +62,9 @@ export default function ChannelsList() {
           </Link>
         ))}
 
-        {visibleChannels.length === 0 && (
-          <div className="text-center py-10 bg-card border-2 border-dashed border-border">
-            <p className="text-muted-foreground font-mono">No assigned channels.</p>
+        {channels.length === 0 && (
+          <div className="text-center py-10 bg-card border border-dashed border-border rounded-lg">
+            <p className="text-muted-foreground text-sm">No channels found. Run setup first.</p>
           </div>
         )}
       </div>
