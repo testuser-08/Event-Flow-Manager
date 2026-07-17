@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { Volunteer } from '@workspace/api-client-react/src/generated/api.schemas';
@@ -25,74 +25,56 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [volunteer, setVolunteer] = useState<Volunteer | null>(null);
+  // Stays true until the first onAuthStateChange fires (INITIAL_SESSION).
+  // This prevents ProtectedRoute from flashing /login before the session is known.
   const [isLoading, setIsLoading] = useState(true);
+
+  const fetchVolunteer = useCallback(async (email: string) => {
+    try {
+      const { data } = await supabase
+        .from('volunteers')
+        .select('*')
+        .eq('email', email)
+        .maybeSingle();
+      setVolunteer((data as Volunteer) ?? null);
+    } catch {
+      // Volunteer table may not exist yet (setup.sql not run) — that's OK,
+      // the user can still be authenticated; they just won't be an admin.
+      setVolunteer(null);
+    }
+  }, []);
 
   useEffect(() => {
     let mounted = true;
 
-    const initSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
+    // onAuthStateChange fires synchronously with INITIAL_SESSION on subscribe,
+    // giving us the persisted session from localStorage immediately — no need
+    // for a separate getSession() call (which would race with this listener).
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, newSession) => {
         if (!mounted) return;
-        
-        setSession(session);
-        setUser(session?.user ?? null);
 
-        if (session?.user?.email) {
-          await fetchVolunteer(session.user.email);
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+
+        if (newSession?.user?.email) {
+          await fetchVolunteer(newSession.user.email);
         } else {
           setVolunteer(null);
-          setIsLoading(false);
         }
-      } catch (error) {
-        console.error('Error fetching session:', error);
-        if (mounted) setIsLoading(false);
-      }
-    };
 
-    const fetchVolunteer = async (email: string) => {
-      try {
-        const { data, error } = await supabase
-          .from('volunteers')
-          .select('*')
-          .eq('email', email)
-          .single();
-          
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error fetching volunteer:', error);
-        }
-        if (mounted) {
-          setVolunteer(data as Volunteer | null);
-        }
-      } catch (error) {
-        console.error('Failed to fetch volunteer', error);
-      } finally {
-        if (mounted) setIsLoading(false);
-      }
-    };
-
-    initSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!mounted) return;
-      
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user?.email) {
-        setIsLoading(true);
-        await fetchVolunteer(session.user.email);
-      } else {
-        setVolunteer(null);
+        // Mark loading complete after the first event (INITIAL_SESSION).
+        // Subsequent events (TOKEN_REFRESHED, SIGNED_IN, etc.) don't reset
+        // isLoading so there is no brief "redirect to /login" flash.
         setIsLoading(false);
       }
-    });
+    );
 
     return () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [fetchVolunteer]);
 
   const signOut = async () => {
     await supabase.auth.signOut();

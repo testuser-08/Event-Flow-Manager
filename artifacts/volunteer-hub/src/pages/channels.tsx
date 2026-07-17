@@ -1,11 +1,9 @@
 import { useGetChannelsSummary } from '@workspace/api-client-react';
-import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'wouter';
 import { ChevronRight, MessageSquare, AlertCircle, AlertTriangle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ChannelsList() {
-  const { volunteer } = useAuth();
   const { data: channels, isLoading } = useGetChannelsSummary();
 
   if (isLoading || !channels) {
@@ -18,18 +16,12 @@ export default function ChannelsList() {
     );
   }
 
-  // Filter channels to only show workstream and All Hands
-  const visibleChannels = channels.filter(c => 
-    c.is_announcements || 
-    c.name.toLowerCase() === volunteer?.workstream?.toLowerCase()
-  );
-
   return (
     <div className="flex-1 overflow-auto bg-muted/30">
       <div className="p-4 space-y-4">
-        <h2 className="font-mono text-sm font-bold uppercase text-muted-foreground mb-2">Your Channels</h2>
+        <h2 className="font-mono text-sm font-bold uppercase text-muted-foreground mb-2">All Channels</h2>
         
-        {visibleChannels.map((channel) => (
+        {channels.map((channel) => (
           <Link key={channel.id} href={`/channels/${channel.slug}`}>
             <div className="group bg-card border-2 border-border p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all cursor-pointer flex flex-col gap-3">
               <div className="flex items-center justify-between">
