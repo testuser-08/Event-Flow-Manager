@@ -18,3 +18,12 @@ expertMode = true
 [postMerge]
 path = "scripts/post-merge.sh"
 timeoutMs = 20000
+
+[userenv]
+
+[userenv.shared]
+ALLOWED_EMAIL_DOMAIN = "sap.com"
+SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhdWloZWJxbmpzam14dHpqZGF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNTI3MjEsImV4cCI6MjA5OTgyODcyMX0.x1JRpYfKgyq7bcyA9NVd1tlQYuOOplFAPLe7HrjfgoQ"
+SUPABASE_URL = "https://hauihebqnjsjmxtzjdax.supabase.co"
+VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhhdWloZWJxbmpzam14dHpqZGF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNTI3MjEsImV4cCI6MjA5OTgyODcyMX0.x1JRpYfKgyq7bcyA9NVd1tlQYuOOplFAPLe7HrjfgoQ"
+VITE_SUPABASE_URL = "https://hauihebqnjsjmxtzjdax.supabase.co"

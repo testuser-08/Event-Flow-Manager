@@ -1,22 +1,27 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
+  # Do not change the title — it controls generated filenames
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Event Volunteer Coordinator API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: admin
+    description: Admin operations
+  - name: channels
+    description: Channel summaries
+  - name: alerts
+    description: Emergency alerts
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +29,242 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /admin/setup:
+    post:
+      operationId: setupDatabase
+      summary: Initialize Supabase schema and seed channels
+      tags: [admin]
+      responses:
+        "200":
+          description: Setup complete
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SetupResult"
+
+  /admin/roster:
+    get:
+      operationId: listVolunteers
+      summary: List all volunteers
+      tags: [admin]
+      parameters:
+        - name: workstream
+          in: query
+          schema:
+            type: string
+        - name: is_admin
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: List of volunteers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Volunteer"
+
+  /admin/volunteers/{id}:
+    patch:
+      operationId: updateVolunteer
+      summary: Update a volunteer workstream or admin status
+      tags: [admin]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VolunteerUpdate"
+      responses:
+        "200":
+          description: Updated volunteer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Volunteer"
+    delete:
+      operationId: deleteVolunteer
+      summary: Remove a volunteer from the roster
+      tags: [admin]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /channels/summary:
+    get:
+      operationId: getChannelsSummary
+      summary: All channels with open issue counts and latest message
+      tags: [channels]
+      responses:
+        "200":
+          description: Channel summaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChannelSummary"
+
+  /alerts/active:
+    get:
+      operationId: getActiveAlerts
+      summary: Active and acknowledged alerts across all channels
+      tags: [alerts]
+      responses:
+        "200":
+          description: Active alerts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Alert"
+
 components:
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
 
+    Volunteer:
+      type: object
+      required: [id, name, email, is_admin, created_at]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        workstream:
+          type: string
+          nullable: true
+        is_admin:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    VolunteerUpdate:
+      type: object
+      properties:
+        workstream:
+          type: string
+          nullable: true
+        is_admin:
+          type: boolean
+
+    RosterUploadResult:
+      type: object
+      required: [inserted, skipped, errors]
+      properties:
+        inserted:
+          type: integer
+        skipped:
+          type: integer
+        errors:
+          type: array
+          items:
+            type: string
+
+    DeleteResult:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+
+    SetupResult:
+      type: object
+      required: [success, message]
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+
+    ChannelSummary:
+      type: object
+      required: [id, name, slug, is_announcements, open_issues, open_urgents]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        slug:
+          type: string
+        is_announcements:
+          type: boolean
+        open_issues:
+          type: integer
+        open_urgents:
+          type: integer
+        latest_message_at:
+          type: string
+          format: date-time
+          nullable: true
+        latest_message_preview:
+          type: string
+          nullable: true
+
+    Alert:
+      type: object
+      required: [id, channel_id, channel_name, user_id, sender_name, note, status, created_at]
+      properties:
+        id:
+          type: string
+        channel_id:
+          type: string
+        channel_name:
+          type: string
+        user_id:
+          type: string
+        sender_name:
+          type: string
+        note:
+          type: string
+        status:
+          type: string
+          enum: [active, acknowledged, resolved]
+        acknowledged_by:
+          type: string
+          nullable: true
+        acknowledged_by_name:
+          type: string
+          nullable: true
+        acknowledged_at:
+          type: string
+          format: date-time
+          nullable: true
+        resolved_by:
+          type: string
+          nullable: true
+        resolved_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
