@@ -41,6 +41,7 @@ export default function Login() {
       if (error) throw error;
       setStep('verify');
     } catch (err: any) {
+      console.error('[Login] signInWithOtp error:', err);
       setErrorMsg(err.message || 'Could not send login email. Please try again.');
     } finally {
       setSending(false);
