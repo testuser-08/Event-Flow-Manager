@@ -52,8 +52,8 @@ export default function Login() {
     e.preventDefault();
     setErrorMsg('');
     const code = otp.trim();
-    if (code.length !== 6) {
-      setErrorMsg('Enter the 6-digit code from your email.');
+    if (code.length < 6) {
+      setErrorMsg('Enter the login code from your email.');
       return;
     }
     setVerifying(true);
@@ -139,13 +139,13 @@ export default function Login() {
 
             <form onSubmit={handleVerify} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="otp" className="font-semibold text-sm">Enter 6-digit code</Label>
+                <Label htmlFor="otp" className="font-semibold text-sm">Enter your login code</Label>
                 <Input
                   id="otp"
                   type="text"
                   inputMode="numeric"
-                  placeholder="123456"
-                  maxLength={6}
+                  placeholder="12345678"
+                  maxLength={8}
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                   className="h-11 text-xl tracking-[0.4em] font-mono text-center"
