@@ -122,14 +122,25 @@ CREATE POLICY "photos_read" ON storage.objects
 -- ============================================================
 -- Seed channels
 -- ============================================================
+-- Remove any channels not in the final list
+DELETE FROM channels WHERE slug NOT IN (
+  'admin','pr','sherpa','registration-desk','feedback',
+  'support-acc','content-specialist','track-managers',
+  'tshirt-distribution','sap-for-me'
+);
+
 INSERT INTO channels (name, slug, is_announcements) VALUES
-  ('All Hands', 'all-hands', true),
-  ('Content Operations Team', 'content-operations-team', false),
-  ('Public Relations', 'public-relations', false),
-  ('Registrations', 'registrations', false),
+  ('Admin', 'admin', false),
+  ('PR', 'pr', false),
+  ('Sherpa', 'sherpa', false),
+  ('Registration Desk', 'registration-desk', false),
+  ('Feedback', 'feedback', false),
+  ('Support Acc', 'support-acc', false),
+  ('Content Specialist', 'content-specialist', false),
   ('Track Managers', 'track-managers', false),
-  ('Misc On Ground', 'misc-on-ground', false)
-ON CONFLICT (slug) DO NOTHING;
+  ('Tshirt Distribution', 'tshirt-distribution', false),
+  ('SAP for me', 'sap-for-me', false)
+ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name, is_announcements = EXCLUDED.is_announcements;
 
 -- ============================================================
 -- Enable Realtime for messages and alerts
