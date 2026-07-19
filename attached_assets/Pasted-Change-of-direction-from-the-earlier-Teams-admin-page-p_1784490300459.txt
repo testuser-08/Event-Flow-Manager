@@ -1,0 +1,23 @@
+Change of direction from the earlier "Teams" admin page — please move this feature into the chat channel itself instead, WhatsApp-style.
+
+What's wanted
+
+Inside each individual channel/chat screen (e.g. "Admin", "PR", "Feedback", etc.), make the channel name/header at the top tappable. Tapping it should open a Participants list — a simple screen or modal showing everyone who belongs to that specific workstream/channel (name, and mark clearly if they're an admin).
+
+This should work exactly like tapping a group name in WhatsApp to see its member list — a natural, expected interaction, not something buried in a separate admin dashboard page.
+
+Details
+
+
+This should be visible to everyone in that channel, not just admins — any volunteer should be able to see who else is in their own workstream. (Read-only, no editing.)
+Show each person's name clearly; you can also show initials/avatar consistent with the existing chat bubble style already used in messages
+Mark admins visibly (e.g. a small badge or icon next to their name), since admins may be present across many channels
+If there's a reasonably simple way to show "online now" status here too (the app already shows something like "2 people here now" at the top of a channel) — feel free to reuse that data if it's easy, but this isn't required if it adds complexity
+Close/back out of this view easily to return to the chat
+
+
+About the previous "Teams" admin page
+
+Please leave the existing /admin/workstreams "Teams" page as-is for now (admins can still use it for a full cross-workstream overview with search) — this new in-chat participant list is a separate, additional feature for a different, more immediate use case (anyone in the channel quickly checking who's in their own group), not a replacement.
+
+Please share a screenshot of the new participant list once built, and confirm it's actually visible on the live deployment before reporting back — a prior "Teams" button was claimed as added but wasn't actually visible in production, so please double check this one is really there before confirming done.
