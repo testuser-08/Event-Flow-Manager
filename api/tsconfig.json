@@ -1,12 +1,15 @@
 {
-  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "module": "CommonJS",
-    "moduleResolution": "node",
+    "target": "es2022",
+    "lib": ["es2022"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
-    "outDir": "dist",
-    "rootDir": ".",
-    "types": ["node"]
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "noEmitOnError": false,
+    "strict": false,
+    "outDir": "dist"
   },
   "include": ["."]
 }
