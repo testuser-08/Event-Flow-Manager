@@ -63,6 +63,13 @@ export function useMessages(channelId?: string) {
           );
         }
       )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'messages', filter: `channel_id=eq.${channelId}` },
+        (payload) => {
+          if (mounted) setMessages((prev) => prev.filter((msg) => msg.id !== payload.old.id));
+        }
+      )
       .subscribe((status) => {
         if (!mounted) return;
         if (status === 'SUBSCRIBED') {

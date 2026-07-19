@@ -5,7 +5,7 @@ import { useGetChannelsSummary } from '@workspace/api-client-react';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Send, AlertTriangle, AlertCircle, Info, Image as ImageIcon, Check, ShieldAlert, Lock, WifiOff, Wifi } from 'lucide-react';
+import { ArrowLeft, Send, AlertTriangle, AlertCircle, Info, Image as ImageIcon, Check, ShieldAlert, Lock, WifiOff, Wifi, Trash2 } from 'lucide-react';
 import { Link } from 'wouter';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { format } from 'date-fns';
@@ -24,6 +24,15 @@ async function apiPost(path: string, body: unknown) {
   });
   const data = await res.json().catch(() => ({}));
   return { ok: res.ok, data };
+}
+
+async function apiDelete(path: string) {
+  const token = localStorage.getItem('vhub_token');
+  const res = await fetch(`${BASE}${path}`, {
+    method: 'DELETE',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  return { ok: res.ok };
 }
 
 async function apiPatch(path: string, body: unknown) {
@@ -115,6 +124,12 @@ export default function ChannelDetail({ slug }: { slug: string }) {
   const handleResolve = async (messageId: string) => {
     if (!volunteer) return;
     await apiPatch(`/api/messages/${messageId}/resolve`, {});
+  };
+
+  const handleDelete = async (messageId: string) => {
+    if (!volunteer) return;
+    if (!window.confirm('Delete this message? This cannot be undone.')) return;
+    await apiDelete(`/api/messages/${messageId}`);
   };
 
   const handleAlert = async (e: React.FormEvent) => {
@@ -246,6 +261,19 @@ export default function ChannelDetail({ slug }: { slug: string }) {
                       >
                         <Check className="w-4 h-4 mr-2" /> Resolve
                       </Button>
+                    </div>
+                  )}
+
+                  {/* Delete — visible to sender or admin */}
+                  {(volunteer?.isAdmin || msg.user_id === volunteer?.volunteerId) && (
+                    <div className="mt-2 flex justify-end">
+                      <button
+                        onClick={() => handleDelete(msg.id)}
+                        className="text-[11px] font-mono text-muted-foreground hover:text-destructive flex items-center gap-1 opacity-50 hover:opacity-100 transition-opacity"
+                        title="Delete message"
+                      >
+                        <Trash2 className="w-3 h-3" /> Delete
+                      </button>
                     </div>
                   )}
                 </div>

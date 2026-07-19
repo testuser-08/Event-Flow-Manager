@@ -94,6 +94,41 @@ router.post("/messages/upload-photo", requireAuth, upload.single("photo"), async
   }
 });
 
+// DELETE /api/messages/:id — sender or admin only
+router.delete("/messages/:id", requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const v = req.volunteer!;
+
+  try {
+    // Fetch the message first to check ownership
+    const { data: msg, error: fetchErr } = await supabaseAdmin
+      .from("messages")
+      .select("user_id")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (fetchErr || !msg) {
+      res.status(404).json({ error: "Message not found." });
+      return;
+    }
+
+    if (!v.isAdmin && msg.user_id !== v.volunteerId) {
+      res.status(403).json({ error: "You can only delete your own messages." });
+      return;
+    }
+
+    const { error } = await supabaseAdmin.from("messages").delete().eq("id", id);
+    if (error) {
+      res.status(500).json({ error: "Failed to delete message." });
+      return;
+    }
+    res.status(204).send();
+  } catch (err) {
+    logger.error({ err }, "delete message error");
+    res.status(500).json({ error: "Failed to delete message." });
+  }
+});
+
 // PATCH /api/messages/:id/resolve
 router.patch("/messages/:id/resolve", requireAuth, async (req, res) => {
   const { id } = req.params;
