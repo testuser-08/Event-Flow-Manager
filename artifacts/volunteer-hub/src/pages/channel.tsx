@@ -15,6 +15,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import VoiceRecorder, { MicButton } from '@/components/shared/VoiceRecorder';
+import VoicePlayer from '@/components/shared/VoicePlayer';
 
 type ChannelMember = { id: string; name: string; is_admin: boolean };
 
@@ -100,6 +102,9 @@ export default function ChannelDetail({ slug }: { slug: string }) {
   const [isAlerting, setIsAlerting] = useState(false);
   const [alertOpen, setAlertOpen] = useState(false);
 
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
+  const [voiceNoteUrl, setVoiceNoteUrl] = useState<string | null>(null);
+
   const [membersOpen, setMembersOpen] = useState(false);
   const [members, setMembers] = useState<ChannelMember[]>([]);
   const [membersLoading, setMembersLoading] = useState(false);
@@ -144,7 +149,7 @@ export default function ChannelDetail({ slug }: { slug: string }) {
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if ((!content.trim() && !photo) || !volunteer || !canWrite) return;
+    if ((!content.trim() && !photo && !voiceNoteUrl) || !volunteer || !canWrite) return;
 
     setIsSending(true);
     try {
@@ -158,12 +163,14 @@ export default function ChannelDetail({ slug }: { slug: string }) {
         content: content.trim(),
         urgency,
         photo_url,
+        voice_note_url: voiceNoteUrl,
       });
 
       if (!ok) throw new Error(data?.error ?? 'Failed to send');
 
       setContent('');
       setPhoto(null);
+      setVoiceNoteUrl(null);
       setUrgency('info');
     } catch (err) {
       console.error('Failed to send message:', err);
@@ -337,7 +344,15 @@ export default function ChannelDetail({ slug }: { slug: string }) {
                     <img src={msg.photo_url} alt="Attached" className="w-full max-h-60 object-cover border-2 border-border mb-2" />
                   )}
 
-                  <p className="whitespace-pre-wrap break-words text-[15px] leading-snug">{msg.content}</p>
+                  {msg.voice_note_url && (
+                    <div className={`mb-2 ${isMe && msg.urgency === 'info' ? 'bg-primary-foreground/10 -mx-1 px-1 py-1 rounded-sm' : 'bg-muted/20 p-1 rounded-sm'}`}>
+                      <VoicePlayer src={msg.voice_note_url} light={isMe && msg.urgency === 'info'} />
+                    </div>
+                  )}
+
+                  {msg.content && (
+                    <p className="whitespace-pre-wrap break-words text-[15px] leading-snug">{msg.content}</p>
+                  )}
 
                   {needsResolution && canWrite && (
                     <div className="mt-3 pt-3 border-t-2 border-black/10 dark:border-white/10">
@@ -375,54 +390,81 @@ export default function ChannelDetail({ slug }: { slug: string }) {
       {/* Compose — shown to all, but locked for read-only users */}
       {canWrite ? (
         <div className="bg-card border-t-2 border-border p-3 shrink-0 space-y-3">
-          <div className="flex gap-2 h-11">
-            {(['info', 'issue', 'urgent'] as const).map((u) => (
-              <button
-                key={u}
-                type="button"
-                onClick={() => setUrgency(u)}
-                className={`flex-1 flex items-center justify-center gap-1.5 font-bold uppercase text-xs border-2 transition-all select-none ${
-                  urgency === u
-                    ? u === 'info' ? 'bg-emerald-500 text-white border-emerald-700 shadow-[inset_0px_3px_6px_rgba(0,0,0,0.2)]'
-                    : u === 'issue' ? 'bg-amber-500 text-black border-amber-700 shadow-[inset_0px_3px_6px_rgba(0,0,0,0.2)]'
-                    : 'bg-red-600 text-white border-red-800 shadow-[inset_0px_3px_6px_rgba(0,0,0,0.2)]'
-                    : 'bg-card text-foreground border-border hover:bg-muted active:bg-muted'
-                }`}
-              >
-                {u === 'info' ? <Info className="w-4 h-4 shrink-0" /> : u === 'issue' ? <AlertCircle className="w-4 h-4 shrink-0" /> : <AlertTriangle className="w-4 h-4 shrink-0" />}
-                {u.charAt(0).toUpperCase() + u.slice(1)}
-              </button>
-            ))}
-          </div>
+          {/* Voice recorder — replaces normal compose while active */}
+          {showVoiceRecorder ? (
+            <VoiceRecorder
+              uploadFolder={channel.id}
+              onSend={(url) => { setVoiceNoteUrl(url); setShowVoiceRecorder(false); }}
+              onCancel={() => setShowVoiceRecorder(false)}
+              disabled={isSending}
+            />
+          ) : (
+            <>
+              <div className="flex gap-2 h-11">
+                {(['info', 'issue', 'urgent'] as const).map((u) => (
+                  <button
+                    key={u}
+                    type="button"
+                    onClick={() => setUrgency(u)}
+                    className={`flex-1 flex items-center justify-center gap-1.5 font-bold uppercase text-xs border-2 transition-all select-none ${
+                      urgency === u
+                        ? u === 'info' ? 'bg-emerald-500 text-white border-emerald-700 shadow-[inset_0px_3px_6px_rgba(0,0,0,0.2)]'
+                        : u === 'issue' ? 'bg-amber-500 text-black border-amber-700 shadow-[inset_0px_3px_6px_rgba(0,0,0,0.2)]'
+                        : 'bg-red-600 text-white border-red-800 shadow-[inset_0px_3px_6px_rgba(0,0,0,0.2)]'
+                        : 'bg-card text-foreground border-border hover:bg-muted active:bg-muted'
+                    }`}
+                  >
+                    {u === 'info' ? <Info className="w-4 h-4 shrink-0" /> : u === 'issue' ? <AlertCircle className="w-4 h-4 shrink-0" /> : <AlertTriangle className="w-4 h-4 shrink-0" />}
+                    {u.charAt(0).toUpperCase() + u.slice(1)}
+                  </button>
+                ))}
+              </div>
 
-          {photo && (
-            <div className="flex items-center justify-between bg-muted p-2 border-2 border-border text-sm font-mono">
-              <span className="truncate flex-1 mr-2">{photo.name}</span>
-              <button onClick={() => setPhoto(null)} className="text-destructive font-bold uppercase text-xs hover:underline">Remove</button>
-            </div>
+              {photo && (
+                <div className="flex items-center justify-between bg-muted p-2 border-2 border-border text-sm font-mono">
+                  <span className="truncate flex-1 mr-2">{photo.name}</span>
+                  <button onClick={() => setPhoto(null)} className="text-destructive font-bold uppercase text-xs hover:underline">Remove</button>
+                </div>
+              )}
+
+              {voiceNoteUrl && (
+                <div className="flex items-center gap-2 bg-muted p-2 border-2 border-border">
+                  <VoicePlayer src={voiceNoteUrl} compact className="flex-1" />
+                  <button onClick={() => setVoiceNoteUrl(null)} className="text-destructive font-bold uppercase text-xs hover:underline shrink-0">Remove</button>
+                </div>
+              )}
+
+              <form onSubmit={handleSend} className="flex gap-2">
+                <div className="relative flex-1">
+                  <Input
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    placeholder="Type message..."
+                    className="pr-20 border-2 h-12 rounded-none focus-visible:ring-0 focus-visible:border-primary text-base"
+                  />
+                  {/* Mic button */}
+                  <div className="absolute right-10 top-0 bottom-0 flex items-center">
+                    <MicButton
+                      onClick={() => setShowVoiceRecorder(true)}
+                      disabled={!!voiceNoteUrl || isSending}
+                    />
+                  </div>
+                  {/* Photo button */}
+                  <label className="absolute right-2 top-2 bottom-2 w-8 flex items-center justify-center cursor-pointer text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => setPhoto(e.target.files?.[0] || null)} />
+                    <ImageIcon className="w-5 h-5" />
+                  </label>
+                </div>
+                <Button
+                  type="submit"
+                  disabled={isSending || (!content.trim() && !photo && !voiceNoteUrl)}
+                  className="w-12 h-12 p-0 rounded-none border-2 border-primary"
+                >
+                  <Send className="w-5 h-5" />
+                </Button>
+              </form>
+            </>
           )}
-
-          <form onSubmit={handleSend} className="flex gap-2">
-            <div className="relative flex-1">
-              <Input
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Type message..."
-                className="pr-12 border-2 h-12 rounded-none focus-visible:ring-0 focus-visible:border-primary text-base"
-              />
-              <label className="absolute right-2 top-2 bottom-2 w-8 flex items-center justify-center cursor-pointer text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => setPhoto(e.target.files?.[0] || null)} />
-                <ImageIcon className="w-5 h-5" />
-              </label>
-            </div>
-            <Button
-              type="submit"
-              disabled={isSending || (!content.trim() && !photo)}
-              className="w-12 h-12 p-0 rounded-none border-2 border-primary"
-            >
-              <Send className="w-5 h-5" />
-            </Button>
-          </form>
         </div>
       ) : (
         <div className="bg-muted/50 border-t-2 border-border p-3 shrink-0 flex items-center justify-center gap-2 text-sm text-muted-foreground font-mono">

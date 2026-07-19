@@ -12,6 +12,7 @@ export type SupabaseMessage = {
   resolved_by: string | null;
   resolved_at: string | null;
   photo_url: string | null;
+  voice_note_url: string | null;
   created_at: string;
 };
 

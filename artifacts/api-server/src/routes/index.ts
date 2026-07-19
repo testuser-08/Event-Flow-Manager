@@ -11,6 +11,7 @@ import profileRouter from "./profile.js";
 import agendaRouter from "./agenda.js";
 import breakoutsRouter from "./breakouts.js";
 import channelMembersRouter from "./channel-members.js";
+import voiceNotesRouter from "./voice-notes.js";
 
 const router: IRouter = Router();
 
@@ -26,5 +27,6 @@ router.use(profileRouter);
 router.use(agendaRouter);
 router.use(breakoutsRouter);
 router.use(channelMembersRouter);
+router.use(voiceNotesRouter);
 
 export default router;

@@ -7,11 +7,15 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link } from 'wouter';
-import { ShieldAlert, AlertTriangle, AlertCircle, Check, Send, Users, WifiOff, Wifi, LayoutList } from 'lucide-react';
+import { ShieldAlert, AlertTriangle, AlertCircle, Check, Send, Users, WifiOff, Wifi, LayoutList, Megaphone } from 'lucide-react';
 import { format } from 'date-fns';
 import type { ConnectionStatus } from '@/hooks/use-messages';
 import { toast } from 'sonner';
 import ScheduleEditor from './schedule-editor';
+import { useBroadcast } from '@/contexts/BroadcastContext';
+import VoiceRecorder, { MicButton } from '@/components/shared/VoiceRecorder';
+import VoicePlayer from '@/components/shared/VoicePlayer';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
 
@@ -53,7 +57,13 @@ export default function AdminDashboard() {
   const { data: alerts, isLoading: loadingAlerts } = useGetActiveAlerts();
   const { data: channels, isLoading: loadingChannels } = useGetChannelsSummary();
 
+  const { sendBroadcast } = useBroadcast();
+
   const [broadcastText, setBroadcastText] = useState('');
+  const [selectedChannelIds, setSelectedChannelIds] = useState<string[]>([]);
+  const [broadcastVoiceUrl, setBroadcastVoiceUrl] = useState<string | null>(null);
+  const [showBroadcastRecorder, setShowBroadcastRecorder] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [realtimeStatus, setRealtimeStatus] = useState<ConnectionStatus>('connecting');
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -116,23 +126,61 @@ export default function AdminDashboard() {
     queryClient.invalidateQueries({ queryKey: getGetActiveAlertsQueryKey() });
   };
 
-  const handleBroadcast = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!broadcastText.trim() || !volunteer || !channels) return;
+  const allSelected = !!channels && selectedChannelIds.length === channels.length && channels.length > 0;
 
-    const target = channels[0];
-    if (!target) return;
+  const toggleAllChannels = () => {
+    setSelectedChannelIds(allSelected ? [] : (channels?.map(c => c.id) ?? []));
+  };
 
+  const toggleChannel = (id: string) => {
+    setSelectedChannelIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const prepareBroadcast = () => {
+    if (selectedChannelIds.length === 0 || (!broadcastText.trim() && !broadcastVoiceUrl)) return;
+    if (selectedChannelIds.length > 1) {
+      setShowConfirm(true);
+    } else {
+      executeBroadcast();
+    }
+  };
+
+  const executeBroadcast = async () => {
+    if (!volunteer || !channels) return;
+    setShowConfirm(false);
     setIsBroadcasting(true);
+
+    const targetChannels = channels.filter(c => selectedChannelIds.includes(c.id));
+
     try {
-      await apiPost('/api/messages', {
-        channel_id: target.id,
-        content: broadcastText.trim(),
-        urgency: 'info',
+      // Post a persistent message to each selected channel
+      for (const ch of targetChannels) {
+        const { ok, data } = await apiPost('/api/messages', {
+          channel_id: ch.id,
+          content: broadcastText.trim() || '📢 Voice broadcast',
+          urgency: 'info',
+          voice_note_url: broadcastVoiceUrl,
+        });
+        if (!ok) {
+          toast.error(`Failed to post to ${ch.name}: ${data?.error ?? 'Unknown error'}`);
+        }
+      }
+
+      // Fire the real-time announcement popup on all volunteer clients
+      await sendBroadcast({
+        text: broadcastText.trim(),
+        voiceNoteUrl: broadcastVoiceUrl,
+        targetChannelNames: targetChannels.map(c => c.name),
+        senderName: volunteer.name,
       });
+
+      toast.success(`Broadcast sent to ${targetChannels.length} channel${targetChannels.length !== 1 ? 's' : ''}!`);
       setBroadcastText('');
+      setBroadcastVoiceUrl(null);
+      setSelectedChannelIds([]);
     } catch (err) {
-      console.error('Failed to broadcast:', err);
+      console.error('Broadcast failed:', err);
+      toast.error('Broadcast failed. Please try again.');
     } finally {
       setIsBroadcasting(false);
     }
@@ -297,20 +345,118 @@ export default function AdminDashboard() {
 
         {/* ── Broadcast ── */}
         <section>
-          <h2 className="font-mono text-xs font-bold uppercase text-muted-foreground mb-3">Broadcast Message</h2>
-          <form onSubmit={handleBroadcast} className="flex gap-2">
-            <Input
+          <h2 className="font-mono text-xs font-bold uppercase text-muted-foreground mb-3 flex items-center gap-2">
+            <Megaphone className="w-3.5 h-3.5" /> Broadcast Message
+          </h2>
+
+          {/* Channel selector */}
+          <div className="bg-card border-2 border-border p-3 mb-3 space-y-2">
+            <p className="text-[10px] font-mono font-bold uppercase text-muted-foreground">Send to:</p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={toggleAllChannels}
+                className={`h-9 min-w-[3rem] px-3 border-2 font-bold uppercase text-xs transition-all ${
+                  allSelected ? 'bg-primary text-primary-foreground border-primary' : 'bg-card border-border hover:bg-muted'
+                }`}
+              >
+                All
+              </button>
+              {channels?.map(ch => {
+                const sel = selectedChannelIds.includes(ch.id);
+                return (
+                  <button
+                    key={ch.id}
+                    type="button"
+                    onClick={() => toggleChannel(ch.id)}
+                    className={`h-9 px-3 border-2 font-bold uppercase text-xs transition-all ${
+                      sel ? 'bg-primary text-primary-foreground border-primary' : 'bg-card border-border hover:bg-muted'
+                    }`}
+                  >
+                    {ch.name}
+                  </button>
+                );
+              })}
+            </div>
+            {selectedChannelIds.length === 0 && (
+              <p className="text-[10px] text-muted-foreground font-mono">Select at least one channel.</p>
+            )}
+          </div>
+
+          {/* Message + voice note */}
+          <div className="space-y-2">
+            <textarea
               value={broadcastText}
               onChange={(e) => setBroadcastText(e.target.value)}
-              placeholder="Send to first channel..."
-              className="border-2 h-11 rounded-none focus-visible:ring-0 focus-visible:border-primary"
+              placeholder="Type announcement... (optional if sending a voice note)"
+              rows={3}
+              className="w-full border-2 border-border bg-card p-3 font-sans text-sm resize-none focus:outline-none focus:border-primary"
             />
-            <Button type="submit" disabled={isBroadcasting || !broadcastText.trim()} className="h-11 px-4 rounded-none border-2 border-primary font-bold uppercase">
-              <Send className="w-4 h-4 mr-2" />
-              {isBroadcasting ? 'Sending...' : 'Send'}
+
+            {showBroadcastRecorder ? (
+              <VoiceRecorder
+                uploadFolder="broadcast"
+                onSend={(url) => { setBroadcastVoiceUrl(url); setShowBroadcastRecorder(false); }}
+                onCancel={() => setShowBroadcastRecorder(false)}
+                disabled={isBroadcasting}
+              />
+            ) : broadcastVoiceUrl ? (
+              <div className="flex items-center gap-2 bg-muted p-2 border-2 border-border">
+                <VoicePlayer src={broadcastVoiceUrl} compact className="flex-1" />
+                <button
+                  type="button"
+                  onClick={() => setBroadcastVoiceUrl(null)}
+                  className="text-destructive font-bold uppercase text-[10px] hover:underline shrink-0 font-mono"
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <MicButton onClick={() => setShowBroadcastRecorder(true)} disabled={isBroadcasting} />
+                <span className="text-[10px] font-mono text-muted-foreground">Add voice note</span>
+              </div>
+            )}
+
+            <Button
+              type="button"
+              onClick={prepareBroadcast}
+              disabled={isBroadcasting || selectedChannelIds.length === 0 || (!broadcastText.trim() && !broadcastVoiceUrl)}
+              className="w-full h-11 rounded-none border-2 border-primary font-bold uppercase gap-2"
+            >
+              <Megaphone className="w-4 h-4" />
+              {isBroadcasting
+                ? 'Broadcasting…'
+                : selectedChannelIds.length === 0
+                  ? 'Select channels to broadcast'
+                  : `Broadcast to ${selectedChannelIds.length} channel${selectedChannelIds.length !== 1 ? 's' : ''}`
+              }
             </Button>
-          </form>
+          </div>
         </section>
+
+        {/* Broadcast confirmation dialog */}
+        <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
+          <AlertDialogContent className="rounded-none border-2 border-border">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="font-black uppercase flex items-center gap-2">
+                <Megaphone className="w-5 h-5" /> Confirm Broadcast
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Send to{' '}
+                <strong>{selectedChannelIds.length} channels</strong>:{' '}
+                {channels?.filter(c => selectedChannelIds.includes(c.id)).map(c => c.name).join(', ')}.
+                {broadcastVoiceUrl && ' Includes a voice note.'}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="rounded-none border-2">Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={executeBroadcast} className="rounded-none border-2">
+                Send Broadcast
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* ── Event Schedule ── */}
         <ScheduleEditor />

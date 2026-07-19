@@ -4,6 +4,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
 import { Route, Switch, Router as WouterRouter, Redirect } from 'wouter';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { BroadcastProvider } from './contexts/BroadcastContext';
 import Login from '@/pages/login';
 import ChannelsList from '@/pages/channels';
 import ChannelDetail from '@/pages/channel';
@@ -97,7 +98,9 @@ function App() {
       <TooltipProvider>
         <AuthProvider>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
-            <Router />
+            <BroadcastProvider>
+              <Router />
+            </BroadcastProvider>
           </WouterRouter>
           <Toaster />
         </AuthProvider>

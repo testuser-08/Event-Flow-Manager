@@ -10,19 +10,20 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 
 // POST /api/messages — send a message
 router.post("/messages", requireAuth, async (req, res) => {
   const v = req.volunteer!;
-  const { channel_id, content, urgency, photo_url } = req.body as {
+  const { channel_id, content, urgency, photo_url, voice_note_url } = req.body as {
     channel_id?: string;
     content?: string;
     urgency?: string;
     photo_url?: string | null;
+    voice_note_url?: string | null;
   };
 
   if (!channel_id) {
     res.status(400).json({ error: "channel_id is required." });
     return;
   }
-  if (!content?.trim() && !photo_url) {
-    res.status(400).json({ error: "Message must have content or a photo." });
+  if (!content?.trim() && !photo_url && !voice_note_url) {
+    res.status(400).json({ error: "Message must have content, a photo, or a voice note." });
     return;
   }
   const validUrgency = ["info", "issue", "urgent"];
@@ -52,6 +53,7 @@ router.post("/messages", requireAuth, async (req, res) => {
       content: content?.trim() ?? "",
       urgency: urgency ?? "info",
       photo_url: photo_url ?? null,
+      voice_note_url: voice_note_url ?? null,
     }).select().single();
 
     if (error) {
