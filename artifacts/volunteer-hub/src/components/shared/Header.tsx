@@ -64,7 +64,7 @@ export default function Header() {
 
         <div className="flex flex-col">
           <Link href="/channels" className="text-xl font-bold tracking-tight uppercase leading-tight">
-            Volunteer Hub
+            Customer Support Summit
           </Link>
           {volunteer && (
             <span className="text-xs font-mono text-muted-foreground leading-tight">

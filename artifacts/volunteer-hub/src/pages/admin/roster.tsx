@@ -59,7 +59,7 @@ export default function AdminRoster() {
           <Link href="/admin" className="p-2 -ml-2 hover:bg-muted rounded-none transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="font-black text-xl uppercase tracking-tighter">Volunteer Roster</h1>
+          <h1 className="font-black text-xl uppercase tracking-tighter">Team Roster</h1>
         </div>
 
         <div>
@@ -81,7 +81,7 @@ export default function AdminRoster() {
         {uploadResult && (
           <div className={`border-2 p-3 font-mono text-sm ${uploadResult.errors?.length ? 'border-amber-500 bg-amber-50 dark:bg-amber-950' : 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950'}`}>
             {uploadResult.inserted !== undefined && (
-              <p className="font-bold mb-1">{uploadResult.inserted} volunteer{uploadResult.inserted !== 1 ? 's' : ''} imported (roster fully replaced).</p>
+              <p className="font-bold mb-1">{uploadResult.inserted} team member{uploadResult.inserted !== 1 ? 's' : ''} imported (roster fully replaced).</p>
             )}
             {uploadResult.errors && uploadResult.errors.length > 0 && (
               <ul className="list-disc list-inside space-y-1 text-amber-800 dark:text-amber-200">
@@ -99,7 +99,7 @@ export default function AdminRoster() {
           <div className="font-mono text-sm text-muted-foreground">Loading roster...</div>
         ) : !volunteers?.length ? (
           <div className="bg-card border-2 border-dashed border-border p-8 text-center text-muted-foreground font-mono text-sm">
-            No volunteers yet. Upload a CSV to get started.
+            No team members yet. Upload a CSV to get started.
           </div>
         ) : (
           <div className="space-y-2">
