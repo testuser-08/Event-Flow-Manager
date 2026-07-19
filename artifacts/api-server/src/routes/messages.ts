@@ -32,6 +32,19 @@ router.post("/messages", requireAuth, async (req, res) => {
   }
 
   try {
+    // Block non-admins from posting to the admin channel
+    if (!v.isAdmin) {
+      const { data: ch } = await supabaseAdmin
+        .from("channels")
+        .select("slug")
+        .eq("id", channel_id)
+        .maybeSingle();
+      if (ch?.slug === "admin") {
+        res.status(403).json({ error: "Admin access required for this channel." });
+        return;
+      }
+    }
+
     const { data, error } = await supabaseAdmin.from("messages").insert({
       channel_id,
       user_id: v.volunteerId,

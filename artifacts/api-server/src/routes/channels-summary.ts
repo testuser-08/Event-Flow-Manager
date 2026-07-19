@@ -1,16 +1,29 @@
 import { Router } from "express";
 import { supabaseAdmin } from "../lib/supabase";
 import { logger } from "../lib/logger";
+import { verifyToken } from "../lib/jwt.js";
 
 const router = Router();
 
 router.get("/channels/summary", async (req, res) => {
+  // Optional auth — detect admin to decide whether to include admin-only channels
+  let isAdmin = false;
+  const auth = req.headers.authorization;
+  if (auth?.startsWith("Bearer ")) {
+    try {
+      const payload = verifyToken(auth.slice(7));
+      isAdmin = payload.isAdmin ?? false;
+    } catch {
+      // invalid token — treat as anonymous
+    }
+  }
+
   try {
-    // Fetch all channels
-    const { data: channels, error: chanErr } = await supabaseAdmin
-      .from("channels")
-      .select("*")
-      .order("name");
+    // Fetch channels; non-admins never see the Admin channel
+    const query = supabaseAdmin.from("channels").select("*").order("name");
+    const { data: channels, error: chanErr } = isAdmin
+      ? await query
+      : await query.neq("slug", "admin");
 
     if (chanErr) {
       res.status(500).json({ error: chanErr.message });

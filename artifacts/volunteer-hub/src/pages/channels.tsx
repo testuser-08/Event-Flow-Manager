@@ -2,9 +2,16 @@ import { useGetChannelsSummary } from '@workspace/api-client-react';
 import { Link } from 'wouter';
 import { ChevronRight, MessageSquare, AlertCircle, AlertTriangle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function ChannelsList() {
-  const { data: channels, isLoading } = useGetChannelsSummary();
+  const { volunteer } = useAuth();
+  const { data: allChannels, isLoading } = useGetChannelsSummary();
+
+  // Non-admins never see the Admin channel
+  const channels = allChannels?.filter(
+    (ch) => volunteer?.isAdmin || ch.slug !== 'admin'
+  );
 
   if (isLoading || !channels) {
     return (

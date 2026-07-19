@@ -87,6 +87,20 @@ export default function ChannelDetail({ slug }: { slug: string }) {
 
   if (!channel) return <div className="p-4 font-mono">Loading channel...</div>;
 
+  // Block non-admins from the admin channel entirely
+  if (channel.slug === 'admin' && !volunteer?.isAdmin) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center gap-3 p-8 text-center">
+        <Lock className="w-10 h-10 text-muted-foreground" />
+        <p className="font-bold text-lg">Admin Only</p>
+        <p className="text-muted-foreground text-sm">You don't have access to this channel.</p>
+        <Link href="/channels">
+          <button className="mt-2 text-sm text-primary underline underline-offset-2">← Back to channels</button>
+        </Link>
+      </div>
+    );
+  }
+
   // Determine write access: admin gets all channels, others only their workstreams
   const canWrite = volunteer?.isAdmin || (volunteer?.workstreams ?? []).includes(channel.name);
 
