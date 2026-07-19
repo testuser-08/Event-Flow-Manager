@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDarkMode } from '@/hooks/use-dark-mode';
 import { Link } from 'wouter';
-import { LogOut, ShieldAlert, Moon, Sun, Upload } from 'lucide-react';
+import { LogOut, ShieldAlert, Moon, Sun, Upload, CalendarDays, LayoutGrid, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Avatar from './Avatar';
 import { toast } from 'sonner';
@@ -80,6 +80,15 @@ export default function Header() {
       </div>
 
       <div className="flex items-center gap-2">
+        <Link href="/channels" className="flex items-center justify-center w-10 h-10 border-2 border-border rounded hover:bg-secondary transition-colors cursor-pointer text-foreground" title="Channels">
+          <MessageSquare className="w-5 h-5" />
+        </Link>
+        <Link href="/agenda" className="flex items-center justify-center w-10 h-10 border-2 border-border rounded hover:bg-secondary transition-colors cursor-pointer text-foreground" title="Agenda">
+          <CalendarDays className="w-5 h-5" />
+        </Link>
+        <Link href="/breakouts" className="flex items-center justify-center w-10 h-10 border-2 border-border rounded hover:bg-secondary transition-colors cursor-pointer text-foreground" title="Breakout Sessions">
+          <LayoutGrid className="w-5 h-5" />
+        </Link>
         {isAdmin && (
           <Link href="/admin" className="flex items-center justify-center w-10 h-10 border-2 border-border rounded hover:bg-secondary transition-colors cursor-pointer text-foreground">
             <ShieldAlert className="w-5 h-5" />

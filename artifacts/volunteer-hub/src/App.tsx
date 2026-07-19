@@ -9,6 +9,8 @@ import ChannelsList from '@/pages/channels';
 import ChannelDetail from '@/pages/channel';
 import AdminDashboard from '@/pages/admin/dashboard';
 import AdminRoster from '@/pages/admin/roster';
+import Agenda from '@/pages/agenda';
+import Breakouts from '@/pages/breakouts';
 import Header from '@/components/shared/Header';
 import { useSetupDatabase } from '@workspace/api-client-react';
 import { useEffect } from 'react';
@@ -58,6 +60,13 @@ function Router() {
           </Route>
           <Route path="/channels/:slug">
             {(params) => <ProtectedRoute component={ChannelDetail} {...params} />}
+          </Route>
+
+          <Route path="/agenda">
+            {(params) => <ProtectedRoute component={Agenda} {...params} />}
+          </Route>
+          <Route path="/breakouts">
+            {(params) => <ProtectedRoute component={Breakouts} {...params} />}
           </Route>
 
           <Route path="/admin">
