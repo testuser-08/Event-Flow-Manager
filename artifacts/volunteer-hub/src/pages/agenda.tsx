@@ -71,7 +71,7 @@ export default function Agenda() {
             : isNext
             ? 'border-amber-400 border-l-[5px] dark:border-amber-400'
             : isPast
-            ? 'border-border opacity-50'
+            ? 'border-border'
             : 'border-border';
 
           if (item.isBreakout) {
