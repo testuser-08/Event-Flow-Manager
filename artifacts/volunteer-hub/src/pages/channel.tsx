@@ -6,7 +6,8 @@ import { useGetChannelsSummary } from '@workspace/api-client-react';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Send, AlertTriangle, AlertCircle, Info, Image as ImageIcon, Check, ShieldAlert, Lock, WifiOff, Wifi, Trash2 } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { ArrowLeft, Send, AlertTriangle, AlertCircle, Info, Image as ImageIcon, Check, ShieldAlert, Lock, WifiOff, Wifi, Trash2, Users, ChevronRight } from 'lucide-react';
 import ChannelIcon from '@/components/shared/ChannelIcon';
 import Avatar from '@/components/shared/Avatar';
 import { Link } from 'wouter';
@@ -14,6 +15,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+
+type ChannelMember = { id: string; name: string; is_admin: boolean };
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
 
@@ -96,6 +99,23 @@ export default function ChannelDetail({ slug }: { slug: string }) {
   const [alertNote, setAlertNote] = useState('');
   const [isAlerting, setIsAlerting] = useState(false);
   const [alertOpen, setAlertOpen] = useState(false);
+
+  const [membersOpen, setMembersOpen] = useState(false);
+  const [members, setMembers] = useState<ChannelMember[]>([]);
+  const [membersLoading, setMembersLoading] = useState(false);
+
+  useEffect(() => {
+    if (!membersOpen || !slug) return;
+    setMembersLoading(true);
+    const token = localStorage.getItem('vhub_token');
+    fetch(`${BASE}/api/channels/${slug}/members`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then(r => r.json())
+      .then(data => setMembers(data.members ?? []))
+      .catch(() => setMembers([]))
+      .finally(() => setMembersLoading(false));
+  }, [membersOpen, slug]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -200,12 +220,18 @@ export default function ChannelDetail({ slug }: { slug: string }) {
             <Link href="/channels" className="p-2 -ml-2 hover:bg-muted rounded-none transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            <div>
-              <h1 className="font-bold text-lg leading-tight uppercase tracking-tight">{channel.name}</h1>
+            <button
+              onClick={() => setMembersOpen(true)}
+              className="text-left group hover:bg-muted/50 -mx-1 px-1 rounded-none transition-colors"
+            >
+              <div className="flex items-center gap-1">
+                <h1 className="font-bold text-lg leading-tight uppercase tracking-tight group-hover:text-primary transition-colors">{channel.name}</h1>
+                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+              </div>
               <p className="text-xs font-mono text-muted-foreground">
-                {canWrite ? 'Workstream Channel' : 'Read-only'}
+                {canWrite ? 'Tap to see members' : 'Read-only · Tap to see members'}
               </p>
-            </div>
+            </button>
           </div>
           <Dialog open={alertOpen} onOpenChange={setAlertOpen}>
           <DialogTrigger asChild>
@@ -419,6 +445,64 @@ export default function ChannelDetail({ slug }: { slug: string }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Members sheet — tap channel name to open */}
+      <Sheet open={membersOpen} onOpenChange={setMembersOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-sm p-0 flex flex-col border-l-2 border-border rounded-none">
+          <SheetHeader className="p-4 border-b-2 border-border shrink-0">
+            <SheetTitle className="font-black text-xl uppercase tracking-tighter flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              {channel.name}
+            </SheetTitle>
+            {!membersLoading && (
+              <p className="text-xs font-mono text-muted-foreground">
+                {members.length} member{members.length !== 1 ? 's' : ''}
+              </p>
+            )}
+          </SheetHeader>
+
+          <div className="flex-1 overflow-y-auto">
+            {membersLoading ? (
+              <div className="p-4 font-mono text-sm text-muted-foreground">Loading members…</div>
+            ) : members.length === 0 ? (
+              <div className="p-8 text-center font-mono text-sm text-muted-foreground">
+                No members assigned to this channel yet.
+              </div>
+            ) : (
+              <div className="divide-y-2 divide-border">
+                {members.map((m) => {
+                  const isOnline = presentUsers.some(u => u.volunteerId === m.id);
+                  const initials = m.name.trim().split(/\s+/).map((n: string) => n[0]).slice(0, 2).join('').toUpperCase();
+                  return (
+                    <div key={m.id} className="flex items-center gap-3 px-4 py-3">
+                      {/* Initials avatar with online dot */}
+                      <div className="relative shrink-0">
+                        <div className="w-9 h-9 bg-primary/10 border-2 border-primary/20 flex items-center justify-center">
+                          <span className="text-xs font-black text-primary">{initials}</span>
+                        </div>
+                        {isOnline && (
+                          <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-card rounded-full" title="Online now" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm truncate leading-tight">{m.name}</p>
+                        {isOnline && (
+                          <p className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-bold">online now</p>
+                        )}
+                      </div>
+                      {m.is_admin && (
+                        <span className="text-[9px] font-black font-mono uppercase px-1.5 py-0.5 bg-primary text-primary-foreground shrink-0">
+                          ADMIN
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

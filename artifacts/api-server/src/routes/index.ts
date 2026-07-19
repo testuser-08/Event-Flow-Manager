@@ -10,6 +10,7 @@ import alertsWriteRouter from "./alerts-write.js";
 import profileRouter from "./profile.js";
 import agendaRouter from "./agenda.js";
 import breakoutsRouter from "./breakouts.js";
+import channelMembersRouter from "./channel-members.js";
 
 const router: IRouter = Router();
 
@@ -24,5 +25,6 @@ router.use(alertsActiveRouter);
 router.use(profileRouter);
 router.use(agendaRouter);
 router.use(breakoutsRouter);
+router.use(channelMembersRouter);
 
 export default router;
