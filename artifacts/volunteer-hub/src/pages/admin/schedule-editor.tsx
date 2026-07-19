@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   useGetAgenda,
   useGetBreakouts,
@@ -718,7 +719,12 @@ function BreakoutsEditor() {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function ScheduleEditor() {
+  const { volunteer } = useAuth();
   const [activeTab, setActiveTab] = useState<'agenda' | 'breakouts'>('agenda');
+
+  if (!volunteer?.isAdmin) {
+    return null;
+  }
 
   return (
     <section>
