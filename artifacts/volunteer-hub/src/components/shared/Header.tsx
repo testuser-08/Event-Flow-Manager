@@ -46,16 +46,17 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-10 bg-background border-b-2 border-border flex items-center justify-between px-4 py-3 shrink-0">
-      <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-10 bg-background border-b-2 border-border flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 shrink-0 gap-2">
+      {/* Left: avatar + app name */}
+      <div className="flex items-center gap-2 min-w-0 flex-1">
         {/* Clickable avatar */}
         {volunteer && (
-          <div className="relative group cursor-pointer" onClick={handleAvatarClick} title="Click to change profile photo">
-            <Avatar name={volunteer.name} avatarUrl={volunteer.avatarUrl} size={40} />
+          <div className="relative group cursor-pointer shrink-0" onClick={handleAvatarClick} title="Click to change profile photo">
+            <Avatar name={volunteer.name} avatarUrl={volunteer.avatarUrl} size={36} />
             <div className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
               {uploading
-                ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                : <Upload className="w-3.5 h-3.5 text-white" />}
+                ? <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                : <Upload className="w-3 h-3 text-white" />}
             </div>
             <input
               ref={fileRef}
@@ -67,30 +68,47 @@ export default function Header() {
           </div>
         )}
 
-        <div className="flex flex-col">
-          <Link href="/channels" className="text-xl font-bold tracking-tight uppercase leading-tight">
-            Customer Support Summit
+        <div className="flex flex-col min-w-0">
+          <Link href="/channels" className="text-sm sm:text-base font-black tracking-tight uppercase leading-tight truncate focus:outline-none">
+            SAP Summit
           </Link>
           {volunteer && (
-            <span className="text-xs font-mono text-muted-foreground leading-tight">
-              {volunteer.name} • {volunteer.workstreams.length > 0 ? volunteer.workstreams.join(', ') : 'No workstream'}
+            <span className="text-[10px] sm:text-xs font-mono text-muted-foreground leading-tight truncate">
+              {volunteer.name}
             </span>
           )}
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        <Link href="/channels" className="flex items-center justify-center w-10 h-10 border-2 border-border rounded hover:bg-secondary transition-colors cursor-pointer text-foreground" title="Channels">
+      {/* Right: nav icons — each is 40×40px minimum touch target */}
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        <Link
+          href="/channels"
+          className="flex items-center justify-center w-10 h-10 border-2 border-border hover:bg-secondary transition-colors cursor-pointer text-foreground focus:outline-none"
+          title="Channels"
+        >
           <MessageSquare className="w-5 h-5" />
         </Link>
-        <Link href="/agenda" className="flex items-center justify-center w-10 h-10 border-2 border-border rounded hover:bg-secondary transition-colors cursor-pointer text-foreground" title="Agenda">
+        <Link
+          href="/agenda"
+          className="flex items-center justify-center w-10 h-10 border-2 border-border hover:bg-secondary transition-colors cursor-pointer text-foreground focus:outline-none"
+          title="Agenda"
+        >
           <CalendarDays className="w-5 h-5" />
         </Link>
-        <Link href="/breakouts" className="flex items-center justify-center w-10 h-10 border-2 border-border rounded hover:bg-secondary transition-colors cursor-pointer text-foreground" title="Breakout Sessions">
+        <Link
+          href="/breakouts"
+          className="flex items-center justify-center w-10 h-10 border-2 border-border hover:bg-secondary transition-colors cursor-pointer text-foreground focus:outline-none"
+          title="Breakout Sessions"
+        >
           <LayoutGrid className="w-5 h-5" />
         </Link>
         {isAdmin && (
-          <Link href="/admin" className="flex items-center justify-center w-10 h-10 border-2 border-border rounded hover:bg-secondary transition-colors cursor-pointer text-foreground">
+          <Link
+            href="/admin"
+            className="flex items-center justify-center w-10 h-10 border-2 border-border hover:bg-secondary transition-colors cursor-pointer text-foreground focus:outline-none"
+            title="Admin"
+          >
             <ShieldAlert className="w-5 h-5" />
           </Link>
         )}
@@ -103,7 +121,13 @@ export default function Header() {
         >
           {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </Button>
-        <Button variant="outline" size="icon" onClick={signOut} className="w-10 h-10 border-2 border-border rounded-none" title="Log out">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={signOut}
+          className="w-10 h-10 border-2 border-border rounded-none"
+          title="Log out"
+        >
           <LogOut className="w-5 h-5" />
         </Button>
       </div>

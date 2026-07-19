@@ -34,7 +34,7 @@ export default function ChannelsList() {
           const hasIssue = channel.open_issues > 0;
 
           return (
-            <Link key={channel.id} href={`/channels/${channel.slug}`}>
+            <Link key={channel.id} href={`/channels/${channel.slug}`} className="block focus:outline-none focus-visible:outline-none">
               <div className={`group bg-card border-2 p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.15)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all cursor-pointer flex flex-col gap-3 ${
                 hasUrgent ? 'border-red-500 border-l-[5px]' : hasIssue ? 'border-amber-400 border-l-[5px]' : 'border-border'
               }`}>

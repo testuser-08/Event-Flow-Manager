@@ -235,9 +235,9 @@ export default function ChannelDetail({ slug }: { slug: string }) {
           </div>
           <Dialog open={alertOpen} onOpenChange={setAlertOpen}>
           <DialogTrigger asChild>
-            <Button variant="destructive" className="rounded-none border-2 font-bold uppercase tracking-wider h-10 px-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-[2px] hover:translate-x-[2px] transition-all">
-              <ShieldAlert className="w-4 h-4 mr-2" />
-              Alert Admins
+            <Button variant="destructive" className="rounded-none border-2 font-bold uppercase tracking-wider h-10 px-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-[2px] hover:translate-x-[2px] transition-all shrink-0">
+              <ShieldAlert className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Alert Admins</span>
             </Button>
           </DialogTrigger>
           <DialogContent className="border-2 border-border rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
@@ -375,21 +375,21 @@ export default function ChannelDetail({ slug }: { slug: string }) {
       {/* Compose — shown to all, but locked for read-only users */}
       {canWrite ? (
         <div className="bg-card border-t-2 border-border p-3 shrink-0 space-y-3">
-          <div className="flex gap-2 h-10">
+          <div className="flex gap-2 h-11">
             {(['info', 'issue', 'urgent'] as const).map((u) => (
               <button
                 key={u}
                 type="button"
                 onClick={() => setUrgency(u)}
-                className={`flex-1 flex items-center justify-center gap-1 font-bold uppercase text-xs border-2 transition-all ${
+                className={`flex-1 flex items-center justify-center gap-1.5 font-bold uppercase text-xs border-2 transition-all select-none ${
                   urgency === u
                     ? u === 'info' ? 'bg-emerald-500 text-white border-emerald-700 shadow-[inset_0px_3px_6px_rgba(0,0,0,0.2)]'
                     : u === 'issue' ? 'bg-amber-500 text-black border-amber-700 shadow-[inset_0px_3px_6px_rgba(0,0,0,0.2)]'
                     : 'bg-red-600 text-white border-red-800 shadow-[inset_0px_3px_6px_rgba(0,0,0,0.2)]'
-                    : 'bg-card text-foreground border-border hover:bg-muted'
+                    : 'bg-card text-foreground border-border hover:bg-muted active:bg-muted'
                 }`}
               >
-                {u === 'info' ? <Info className="w-4 h-4" /> : u === 'issue' ? <AlertCircle className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
+                {u === 'info' ? <Info className="w-4 h-4 shrink-0" /> : u === 'issue' ? <AlertCircle className="w-4 h-4 shrink-0" /> : <AlertTriangle className="w-4 h-4 shrink-0" />}
                 {u.charAt(0).toUpperCase() + u.slice(1)}
               </button>
             ))}
