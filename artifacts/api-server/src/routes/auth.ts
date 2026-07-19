@@ -37,7 +37,7 @@ router.post("/auth/login", loginLimiter, async (req, res) => {
     // Fetch all rows for this email (could be multiple workstreams)
     const { data, error } = await supabaseAdmin
       .from("volunteers")
-      .select("id, name, email, workstreams, is_admin, has_seen_welcome")
+      .select("id, name, email, workstreams, is_admin")
       .eq("email", email)
       .maybeSingle();
 
@@ -63,16 +63,18 @@ router.post("/auth/login", loginLimiter, async (req, res) => {
       isAdmin: data.is_admin ?? false,
     });
 
-    // Try to fetch avatar_url separately (column may not exist until migration runs)
+    // Try to fetch optional columns separately (may not exist until migrations run)
     let avatarUrl: string | null = null;
+    let hasSeenWelcome = false;
     try {
-      const { data: av } = await supabaseAdmin
+      const { data: extras } = await supabaseAdmin
         .from("volunteers")
-        .select("avatar_url")
+        .select("avatar_url, has_seen_welcome")
         .eq("id", data.id)
         .maybeSingle();
-      avatarUrl = av?.avatar_url ?? null;
-    } catch { /* migration not run yet — fine, defaults to initials avatar */ }
+      avatarUrl = extras?.avatar_url ?? null;
+      hasSeenWelcome = extras?.has_seen_welcome ?? false;
+    } catch { /* migration not run yet — fine, use defaults */ }
 
     res.json({
       token,
@@ -83,7 +85,7 @@ router.post("/auth/login", loginLimiter, async (req, res) => {
         workstreams: data.workstreams ?? [],
         isAdmin: data.is_admin ?? false,
         avatarUrl,
-        hasSeenWelcome: data.has_seen_welcome ?? false,
+        hasSeenWelcome,
       },
     });
   } catch (err) {
