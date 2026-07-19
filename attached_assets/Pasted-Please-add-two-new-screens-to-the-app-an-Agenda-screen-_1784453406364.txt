@@ -1,0 +1,164 @@
+Please add two new screens to the app: an Agenda screen and a Breakout Sessions screen. Both should be accessible from the main navigation, visible to all logged-in users (read-only, no admin restriction needed — this is public event info for volunteers).
+
+## Screen 1: Agenda
+A simple vertical timeline/list for the full day. Each row shows: time range, event title, and location. Use this exact data:
+
+| Time | Event | Location |
+|---|---|---|
+| 08:30 AM – 09:20 AM | Registrations and Refreshments | Outside BLR05 Audimax |
+| 09:30 AM – 09:45 AM | Welcome Note by Stefan | BLR05 Audimax |
+| 09:45 AM – 10:05 AM | Customer Success Story | BLR05 Audimax |
+| 10:05 AM – 10:40 AM | Keynote: Rewiring Support for the Autonomous Enterprise | BLR05 Audimax |
+| 10:40 AM – 10:50 AM | Support Accreditation Launch | BLR05 Audimax |
+| 10:50 AM – 11:20 AM | Networking Break | Café Lounge and Hive |
+| 11:20 AM – 12:00 PM | Executive Panel Discussion: AI at the Center, Humans at the Core | BLR05 Audimax |
+| 12:00 PM – 01:30 PM | Lunch | BLR02 Indoor Cafeteria and BLR05 Canopy |
+| 01:30 PM – 04:00 PM | Breakout Session (see dedicated Breakout Sessions screen for full details) | Various zones across BLR05 (and BLR03 for MCC Walkthrough) |
+| 04:00 PM – 05:00 PM | Guest Speaker Session – Meet Kenny Sebastian! | BLR05 Audimax |
+| 05:00 PM – 05:10 PM | Thank You Note | BLR05 Audimax |
+| 05:10 PM – 05:45 PM | High-Tea | BLR05 Canopy |
+| 06:30 PM – 09:30 PM | Dinner (exclusive, at Oasis Brewery) | Oasis Brewery |
+
+Make the "01:30 PM – 04:00 PM Breakout Session" row tappable/clickable, linking directly to the new Breakout Sessions screen below.
+
+## Breaks within the Breakout Session window
+In addition to the main 12:00–1:30 PM lunch (shown on the Agenda screen), there are two short breaks embedded within the 1:30–4:00 PM breakout window itself. Please show this clearly on the Breakout Sessions screen (e.g. as a banner or note at the top, or inline where relevant), so people don't think sessions run continuously with no pause:
+- **2:15 PM – 2:30 PM: Break**
+- **3:15 PM – 3:30 PM: Break**
+
+## Screen 2: Breakout Sessions (1:30 PM – 4:00 PM)
+This screen should let someone pick a track/zone (Demopods, Tech Talk, Design Thinking Zones, MCC Walkthrough) and see the full session lineup organized **by time slot** — i.e. for each time slot, list all the zones/tracks running at that moment side by side, not just one flat list. A tabbed or accordion layout (one tab per track) works well, with each tab internally organized by time slot.
+
+### Track: Demopods
+Location: BLR05 Experience Center
+
+**1:30 PM – 2:00 PM**
+- Zone 1 (AI): Joule in SAP for Me
+- Zone 2: Accenture: AI Agents Powering the Future of Customer Support
+- Zone 3: NTT: Work Smarter with Joule AI
+- Zone 4 (AI): People Intelligence in Business Data Cloud (BDC)
+- Zone 5: Unlocking the New People Profile Experience
+- Zone 6: Cash Management in SAP S/4HANA Private Cloud: A Practical Migration Journey
+
+**2:00 PM – 2:30 PM**
+- Zone 1: Financial Consistency Analysis Agent
+- Zone 2: Accenture: ARIA – Adaptive & Responsive Intelligence for Autonomous Supply Chain
+- Zone 3: NTT: Work Smarter with Joule AI
+- Zone 4: Unlocking AI in SAP for Me for Procurement Customers: Joule, Generative AI & Business Insights
+- Zone 5: Getting started with Smartrecruiters
+- Zone 6: Introducing MDCA: The New Standard in Master Data Consistency
+
+**2:30 PM – 3:00 PM**
+- Zone 1: Discovering SAP Joule for Consultants
+- Zone 2: Centralizing SAP Business AI Feature Lifecycle Across SAP Cloud Solutions Using SAP CBC
+- Zone 3: SAP Concur: New Control Center Dashboard & AI generated Travel Policy Rules
+- Zone 4: Autonomous Selling: A Preview of SAP Sales Cloud V2's AI Agents (H2 2026)
+- Zone 5: Planning Collaboration in NextGen
+- Zone 6: SAP Integration Suite: Common Design Pitfalls Leading to Out-of-Memory Issues and Failures
+
+**3:00 PM – 3:30 PM**
+- Zone 1: Joule In Procurement
+- Zone 2: Invisible Support, Visible Outcomes
+- Zone 3: E-Invoicing for Concur Expense
+- Zone 4: Support Supercharged – Driving Excellence with Tosca Automation
+- Zone 5: Data-Driven Advisory for RISE with SAP Customers
+- Zone 6: SAP Cloud Connector: Bridging Onpremise to Cloud
+
+**3:30 PM – 4:00 PM**
+- Zone 1: GenAI-Driven Extensibility in SAP S/4HANA Public Cloud: Empowering Developers with Joule
+- Zone 2: AI-Powered Intelligent Case Triaging – Accelerating Escalation Decisions
+- Zone 3: SAP Concur: Lifecycle of an expense report
+- Zone 4: SAP Intelligent Agriculture
+- Zone 5: AI Driven SAP MCC Support Tools
+- Zone 6: Impact of Client Authentication EKU Deprecation on SAP Integration Suite
+
+### Track: Demo Pods (Experience Center) — separate from the "Demopods" track above, runs at the same time
+Location: BLR05 Experience Center
+This is a distinct set of demo pods from the 6-zone "Demopods" track above — both run simultaneously in different areas, please keep them as two separate tracks/tabs, not merged.
+
+**1:30 PM – 2:30 PM**
+- Zone 1: Private Cloud
+- Zone 2: SuccessFactors
+- Zone 3: Ariba/Procurement
+
+**2:30 PM – 4:00 PM**
+- Zone 1: Public Cloud
+- Zone 2: BTP
+- Zone 3: Concur
+- Zone 4: I&CX
+
+### Track: Tech Talk
+Location: Hive Space / Experience Center Tech Talk Zone 1
+
+**1:30 PM – 2:00 PM**
+- Hive Space: Navigating Legal Change with SAP: RCM, Roadmaps & More
+- Experience Center Zone 1: New Concur Travel
+
+**2:00 PM – 2:30 PM**
+- Hive Space: The Intelligent Support Experience: Powered by Joule and Real-Time Expert Engagement
+- Experience Center Zone 1: Business Network: Country/Region-Specific Tax Invoicing Process in NextGen
+
+**2:30 PM – 3:00 PM**
+- Hive Space: Joule Agentic AI for SuccessFactors BizX
+- Experience Center Zone 1: Forward Deployed Engineering (FDE)
+
+**3:00 PM – 3:30 PM**
+- Hive Space: Understanding Joule: Architecture, Authorization Flow, and Interaction Patterns
+- Experience Center Zone 1: From Reactive Support to Proactive Service with SAP
+
+**3:30 PM – 4:00 PM**
+- Hive Space: Foundational Support Services in Enterprise Support and SAP Cloud ALM
+- Experience Center Zone 1: SAP Business Suite – Case study with H2R
+
+### Track: Design Thinking Zones
+Location: BLR05 First Floor Flexi Rooms
+
+- Zone 2, 1:30 PM – 2:30 PM: Future of Support Arena
+- Zone 1, 2:30 PM – 3:00 PM: SAP for Me Arena Session 1
+- Zone 1, 3:30 PM – 4:00 PM: SAP for Me Arena Session 2
+
+(Note: only these specific slots have sessions in the source data — the other time slots for this track are intentionally blank/unscheduled, not missing data.)
+
+### Track: MCC Walkthrough
+Location: BLR03 2B, 1st Floor MCC Room
+
+- 1:30 PM – 2:10 PM: MCC Walkthrough
+- 2:20 PM – 3:00 PM: MCC Walkthrough
+- 3:00 PM – 3:40 PM: MCC Walkthrough
+
+(This is the same walkthrough repeated three times, not three different topics.)
+
+## Also include on this screen (required — same priority as the tracks above, not optional)
+Two more sections that ran in the same window, needed just as much as Demopods/Tech Talk/Design Thinking/MCC:
+
+**Ask an Expert Corner** — Location: BLR05 Experience Center
+- Zone 1: Public Cloud (1:30–2:30 PM), Private Cloud (2:30–3:30 PM)
+- Zone 2: BTP (1:30–2:30 PM), SuccessFactors (2:30–3:30 PM)
+- Zone 3: Concur (1:30–2:30 PM), Ariba/Procurement (2:30–3:30 PM)
+- Zone 4: I&CX (1:30–2:30 PM)
+
+**Support Accreditation Zone** — Location: BLR05 Audimax
+- Give-away at 2:00–2:30 PM and 3:00–3:30 PM
+
+## UI/UX Requirements (apply to both screens)
+
+**Structure**
+- Agenda and Breakout Sessions must be two **separate, distinct screens** (not combined into one), each reachable directly from the main navigation — don't bury one inside the other beyond the one link from the Agenda's breakout row mentioned above
+- Easy to move between them and back to the rest of the app (chat channels, admin dashboard) without getting stuck — a persistent bottom nav bar or top tab bar is ideal if the app doesn't already have one
+
+**Search & Filter**
+- Add a search bar on the Breakout Sessions screen so someone can type a keyword (e.g. "Joule" or "Concur") and see every matching session across all tracks, regardless of which tab/track it's in
+- Add a filter to show "What's happening right now" based on the current time — genuinely useful for someone standing in the venue trying to decide where to go next
+- On the Agenda screen, filtering isn't essential (it's one linear timeline), but make it easy to jump to "right now," e.g. auto-scroll to or highlight the current/next agenda item when opened
+
+**Visual design**
+- Color-code by track/category on the Breakout Sessions screen — Demopods, Tech Talk, Design Thinking Zones, MCC Walkthrough, Ask an Expert Corner, Support Accreditation Zone, and the separate Demo Pods (Experience Center) track should each have a distinct, consistent color used for their tab/badge/accent throughout
+- Should look clean, modern, and professional — this represents the event, not just an internal tool, so put real design effort in (matching the same design bar as the rest of the app, respecting dark mode if that's already been added)
+- Prioritize readability and scanability over density — people will glance at this quickly while walking, not sit and study it
+
+**Nice extra features, if time allows (not required, but good if easy to add)**
+- A "Happening Now" or "Up Next" highlight/badge on whichever agenda item or session is currently active, updating live as time passes
+- Ability to bookmark/star a specific breakout session as a personal reminder
+- A subtle "time until this starts" countdown on the next upcoming agenda item
+
+Please don't let visual polish or extra features come at the cost of getting the actual content (all tracks, times, locations above) fully correct — accuracy first, then make it look great.
