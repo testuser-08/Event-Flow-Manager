@@ -5,6 +5,8 @@ import { getListVolunteersQueryKey } from '@workspace/api-client-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'wouter';
 import { ArrowLeft, Upload, Trash2, ShieldCheck, Shield } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { toast } from 'sonner';
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
 
@@ -16,6 +18,7 @@ export default function AdminRoster() {
   const [uploading, setUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState<{ inserted?: number; errors?: string[] } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [deletePending, setDeletePending] = useState<{ id: string; name: string } | null>(null);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -45,10 +48,20 @@ export default function AdminRoster() {
     }
   };
 
-  const handleDelete = (id: string, name: string) => {
-    if (!confirm(`Remove ${name} from the roster?`)) return;
-    deleteVolunteer({ id }, {
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: getListVolunteersQueryKey() }),
+  const handleDelete = (id: string, name: string) => setDeletePending({ id, name });
+
+  const confirmDelete = () => {
+    if (!deletePending) return;
+    deleteVolunteer({ id: deletePending.id }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListVolunteersQueryKey() });
+        toast.success(`${deletePending.name} removed from the roster.`);
+        setDeletePending(null);
+      },
+      onError: () => {
+        toast.error('Could not remove team member. Please try again.');
+        setDeletePending(null);
+      },
     });
   };
 
@@ -131,6 +144,24 @@ export default function AdminRoster() {
           </div>
         )}
       </div>
+
+      {/* Remove team member confirmation */}
+      <AlertDialog open={!!deletePending} onOpenChange={(open) => { if (!open) setDeletePending(null); }}>
+        <AlertDialogContent className="rounded-none border-2 border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-black uppercase">Remove team member?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <span className="font-semibold">{deletePending?.name}</span> will be removed from the roster and will lose access immediately.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-none border-2">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="rounded-none border-2 bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

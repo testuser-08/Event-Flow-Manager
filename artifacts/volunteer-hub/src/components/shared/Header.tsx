@@ -5,6 +5,7 @@ import { Link } from 'wouter';
 import { LogOut, ShieldAlert, Moon, Sun, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Avatar from './Avatar';
+import { toast } from 'sonner';
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
 
@@ -30,10 +31,14 @@ export default function Header() {
         body: form,
       });
       const data = await res.json().catch(() => ({}));
-      if (res.ok && data.avatar_url) updateAvatar(data.avatar_url);
-      else alert(data.error ?? 'Upload failed');
+      if (res.ok && data.avatar_url) {
+        updateAvatar(data.avatar_url);
+        toast.success('Profile photo updated.');
+      } else {
+        toast.error(data.error ?? 'Upload failed. Please try again.');
+      }
     } catch {
-      alert('Upload failed. Please try again.');
+      toast.error('Could not reach the server. Please check your connection.');
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = '';

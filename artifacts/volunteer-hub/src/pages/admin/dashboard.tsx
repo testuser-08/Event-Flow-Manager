@@ -10,27 +10,39 @@ import { Link } from 'wouter';
 import { ShieldAlert, AlertTriangle, AlertCircle, Check, Send, Users, WifiOff, Wifi } from 'lucide-react';
 import { format } from 'date-fns';
 import type { ConnectionStatus } from '@/hooks/use-messages';
+import { toast } from 'sonner';
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
 
-async function apiPost(path: string, body: unknown) {
+function authHeaders() {
   const token = localStorage.getItem('vhub_token');
-  const res = await fetch(`${BASE}${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-    body: JSON.stringify(body),
-  });
-  return res.json().catch(() => ({}));
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+async function apiPost(path: string, body: unknown) {
+  try {
+    const res = await fetch(`${BASE}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    });
+    return { ok: res.ok, data: await res.json().catch(() => ({})) };
+  } catch {
+    return { ok: false, data: { error: 'Network error. Please check your connection.' } };
+  }
 }
 
 async function apiPatch(path: string, body: unknown) {
-  const token = localStorage.getItem('vhub_token');
-  const res = await fetch(`${BASE}${path}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-    body: JSON.stringify(body),
-  });
-  return res.json().catch(() => ({}));
+  try {
+    const res = await fetch(`${BASE}${path}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    });
+    return { ok: res.ok, data: await res.json().catch(() => ({})) };
+  } catch {
+    return { ok: false, data: { error: 'Network error. Please check your connection.' } };
+  }
 }
 
 export default function AdminDashboard() {
@@ -91,13 +103,15 @@ export default function AdminDashboard() {
 
   const handleAcknowledge = async (alertId: string) => {
     if (!volunteer) return;
-    await apiPatch(`/api/alerts/${alertId}`, { status: 'acknowledged' });
+    const { ok } = await apiPatch(`/api/alerts/${alertId}`, { status: 'acknowledged' });
+    if (!ok) { toast.error('Could not acknowledge alert. Please try again.'); return; }
     queryClient.invalidateQueries({ queryKey: getGetActiveAlertsQueryKey() });
   };
 
   const handleResolveAlert = async (alertId: string) => {
     if (!volunteer) return;
-    await apiPatch(`/api/alerts/${alertId}`, { status: 'resolved' });
+    const { ok } = await apiPatch(`/api/alerts/${alertId}`, { status: 'resolved' });
+    if (!ok) { toast.error('Could not resolve alert. Please try again.'); return; }
     queryClient.invalidateQueries({ queryKey: getGetActiveAlertsQueryKey() });
   };
 

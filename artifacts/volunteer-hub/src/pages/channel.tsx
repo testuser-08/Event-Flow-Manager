@@ -10,45 +10,55 @@ import ChannelIcon from '@/components/shared/ChannelIcon';
 import Avatar from '@/components/shared/Avatar';
 import { Link } from 'wouter';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
 
-async function apiPost(path: string, body: unknown) {
+function authHeaders() {
   const token = localStorage.getItem('vhub_token');
-  const res = await fetch(`${BASE}${path}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json().catch(() => ({}));
-  return { ok: res.ok, data };
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+async function apiPost(path: string, body: unknown) {
+  try {
+    const res = await fetch(`${BASE}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json().catch(() => ({}));
+    return { ok: res.ok, data };
+  } catch {
+    return { ok: false, data: { error: 'Network error. Please check your connection.' } };
+  }
 }
 
 async function apiDelete(path: string) {
-  const token = localStorage.getItem('vhub_token');
-  const res = await fetch(`${BASE}${path}`, {
-    method: 'DELETE',
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
-  return { ok: res.ok };
+  try {
+    const res = await fetch(`${BASE}${path}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    });
+    return { ok: res.ok };
+  } catch {
+    return { ok: false };
+  }
 }
 
 async function apiPatch(path: string, body: unknown) {
-  const token = localStorage.getItem('vhub_token');
-  const res = await fetch(`${BASE}${path}`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json().catch(() => ({}));
-  return { ok: res.ok, data };
+  try {
+    const res = await fetch(`${BASE}${path}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json().catch(() => ({}));
+    return { ok: res.ok, data };
+  } catch {
+    return { ok: false, data: { error: 'Network error. Please check your connection.' } };
+  }
 }
 
 async function uploadPhoto(channelId: string, file: File): Promise<string> {
@@ -131,21 +141,25 @@ export default function ChannelDetail({ slug }: { slug: string }) {
       setUrgency('info');
     } catch (err) {
       console.error('Failed to send message:', err);
-      alert('Failed to send message. Please try again.');
+      toast.error('Failed to send message. Please try again.');
     } finally {
       setIsSending(false);
     }
   };
 
+  const [deletePendingId, setDeletePendingId] = useState<string | null>(null);
+
   const handleResolve = async (messageId: string) => {
     if (!volunteer) return;
-    await apiPatch(`/api/messages/${messageId}/resolve`, {});
+    const { ok } = await apiPatch(`/api/messages/${messageId}/resolve`, {});
+    if (!ok) toast.error('Could not resolve message. Please try again.');
   };
 
-  const handleDelete = async (messageId: string) => {
-    if (!volunteer) return;
-    if (!window.confirm('Delete this message? This cannot be undone.')) return;
-    await apiDelete(`/api/messages/${messageId}`);
+  const confirmDelete = async () => {
+    if (!deletePendingId) return;
+    const { ok } = await apiDelete(`/api/messages/${deletePendingId}`);
+    if (!ok) toast.error('Could not delete message. Please try again.');
+    setDeletePendingId(null);
   };
 
   const handleAlert = async (e: React.FormEvent) => {
@@ -284,7 +298,7 @@ export default function ChannelDetail({ slug }: { slug: string }) {
                   {(volunteer?.isAdmin || msg.user_id === volunteer?.volunteerId) && (
                     <div className="mt-2 flex justify-end">
                       <button
-                        onClick={() => handleDelete(msg.id)}
+                        onClick={() => setDeletePendingId(msg.id)}
                         className="text-[11px] font-mono text-muted-foreground hover:text-destructive flex items-center gap-1 opacity-50 hover:opacity-100 transition-opacity"
                         title="Delete message"
                       >
@@ -358,6 +372,21 @@ export default function ChannelDetail({ slug }: { slug: string }) {
           Read-only — this isn't your workstream
         </div>
       )}
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={!!deletePendingId} onOpenChange={(open) => { if (!open) setDeletePendingId(null); }}>
+        <AlertDialogContent className="rounded-none border-2 border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-black uppercase">Delete message?</AlertDialogTitle>
+            <AlertDialogDescription>This message will be permanently removed for everyone in this channel.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-none border-2">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="rounded-none border-2 bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
