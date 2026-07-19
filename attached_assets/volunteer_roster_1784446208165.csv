@@ -1,0 +1,109 @@
+name,email,workstream,is_admin
+Liya Gafar,liya.gafar@sap.com,Admin,TRUE
+Ujjwal Kumar,ujjwal.kumar01@sap.com,Admin,TRUE
+Sharvari Sosale,sharvari.sosale@sap.com,Admin,TRUE
+Thejas Krishnan,thejas.krishnan@sap.com,Admin,TRUE
+Joswin Melrick Lobo,joswin.melrick.lobo@sap.com,Admin,TRUE
+Mimansa,mimansa.mishra@sap.com,Admin,TRUE
+Gouri Krishna G,gouri.krishna.g@sap.com,PR,FALSE
+Saddala Jahnavi,saddala.jahnavi@sap.com,PR,FALSE
+BSV Sandeep,bsv.sandeep@sap.com,PR,FALSE
+K Sai Teja,k.sai.teja@sap.com,PR,FALSE
+Apoorva Tejashwini,a.tejashwini@sap.com,PR,FALSE
+Roshni S,roshni.s@sap.com,PR,FALSE
+Lalini Ramakoti Jeereddy,lalini.ramakoti.jeereddy@sap.com,PR,FALSE
+Tanisha Mathur,tanisha.mathur@sap.com,PR,FALSE
+Sharat Racha,sharat.racha@sap.com,PR,FALSE
+Deepa B N,deepa.b.n@sap.com,PR,FALSE
+Ashok Kumar G,ashok.kumar.g01@sap.com,PR,FALSE
+Soumak De,soumak.de@sap.com,PR,FALSE
+Sandeep Y R,sandeep.y.r@sap.com,PR,FALSE
+K V Sagar,k.v.sagar@sap.com,PR,FALSE
+Mohammed Siddique,mohammed.siddique@sap.com,PR,FALSE
+Anand Kumar R,anand.kumar.r01@sap.com,PR,FALSE
+Moulieswaran C,moulieswaran.c@sap.com,PR,FALSE
+Swathi R,swathi.r03@sap.com,PR,FALSE
+Dhaarnish R S,dhaarnish.r.s@sap.com,PR,FALSE
+Chiranjeevi B,chiranjeevi.b@sap.com,PR,FALSE
+Haritha Mathivanan,h.mathivanan@sap.com,PR,FALSE
+Anurag Kumar,anurag.kumar02@sap.com,PR,FALSE
+Deeksha Rao K,deeksha.rao.k@sap.com,PR,FALSE
+Naazneen Ahmed,naazneen.ahmed@sap.com,PR,FALSE
+Jahnavi M R,jahnavi.m.r@sap.com,PR,FALSE
+Saunak Roy,saunak.roy@sap.com,PR,FALSE
+Pavana A,pavana.a@sap.com,PR,FALSE
+Priyanka Adak,priyanka.adak@sap.com,PR,FALSE
+Anoop Ramachandran,anoop.ramachandran@sap.com,PR,FALSE
+Lahari Gurajala,lahari.gurajala@sap.com,PR,FALSE
+Sanjana Pradeep,sanjana.pradeep@sap.com,PR,FALSE
+Vishakh Yalmakkanavar,vishakh.yalmakkanavar@sap.com,PR,FALSE
+Neeraj Kumar,neeraj.kumar05@sap.com,PR,FALSE
+Anisha Bafna,anisha.bafna@sap.com,PR,FALSE
+Rohan Arabagonda,r.arabagonda@sap.com,PR,FALSE
+Ashish Patra,ashish.patra@sap.com,PR,FALSE
+Sonam Joseph,sonam.joseph@sap.com,PR,FALSE
+Guru Yog Padmanabhan,guru.yog.padmanabhan@sap.com,PR,FALSE
+Indira Bhattacharya,indira.bhattacharya@sap.com,PR,FALSE
+Radhika Emmadi Rajarao,r.emmadi.rajarao@sap.com,PR,FALSE
+Shilpa K,shilpa.k02@sap.com,PR,FALSE
+Divya Gugulothu,divya.gugulothu@sap.com,PR,FALSE
+Jeyasudha Mohanasundaram,jeyasudha.mohanasundaram@sap.com,PR,FALSE
+Chandan M S,chandan.m.s01@sap.com,PR,FALSE
+Preitty Mishra,preitty.mishra@sap.com,PR,FALSE
+Simmon Pradhan,simmon.pradhan@sap.com,PR,FALSE
+Shreya Shukla,shreya.shukla02@sap.com,PR,FALSE
+Sayantani Das,sayantani.das@sap.com,PR,FALSE
+Ritu Ranjan,ritu.ranjan01@sap.com,PR,FALSE
+Jyothi Nagesh,jyothi.nagesh01@sap.com,PR,FALSE
+Shreyas A Yadav,shreyas.a.yadav@sap.com,PR,FALSE
+Vivek Munka,vivek.munka@sap.com,PR,FALSE
+Venkata Janardhan Tumpala,venkata.janardhan.tumpala@sap.com,PR,FALSE
+Saivenkateswar Krishnaprasad,s.krishnaprasad@sap.com,PR,FALSE
+Lalithya H P,lalithya.h.p@sap.com,Sherpa,FALSE
+Ranjitha J,ranjitha.j@sap.com,Sherpa,FALSE
+Naveed Ali,naveed.ali@sap.com,Sherpa,FALSE
+Swetha Sankar,swetha.sankar01@sap.com,Sherpa,FALSE
+Dipankar Kalita,dipankar.kalita@sap.com,Sherpa,FALSE
+Anurag Rajaboina,anurag.rajaboina@sap.com,Sherpa,FALSE
+Prerana Maktal,prerana.maktal@sap.com,Sherpa,FALSE
+Gahana S,gahana.s@sap.com,Sherpa,FALSE
+Gopi Krishna Guguloth,gopi.krishna.guguloth@sap.com,Sherpa,FALSE
+Deepali Joshi,deepali.joshi02@sap.com,Registration Desk,FALSE
+Prathibha B,prathibha.b@sap.com,Registration Desk,FALSE
+Mounika Jakkireddy,m.jakkireddy@sap.com,Registration Desk,FALSE
+Pavithra JC,p.jc@sap.com,Registration Desk,FALSE
+Rekha Thangavel,rekha.thangavel@sap.com,Registration Desk,FALSE
+Mimansa Mishra,mimansa.mishra@sap.com,Feedback,TRUE
+Dilip S Y,dilip.s.y@sap.com,Feedback,FALSE
+Preetish Hasalkar,p.hasalkar@sap.com,Feedback,FALSE
+Prakash Nadkarni,prakash.nadkarni@sap.com,Feedback,FALSE
+Madhura Jogi,madhura.jogi@sap.com,Feedback,FALSE
+Nikhin Kaverappa A,n.a@sap.com,Support Acc,FALSE
+Jerin Benny,jerin.gregory.benny@sap.com,Content Specialist,FALSE
+BJ Poornima,b.j.poornima@sap.com,Track Managers,FALSE
+Anurag Kumar,anurag.kumar02@sap.com,Content Specialist,FALSE
+Pooja Hadagali,pooja.hadagali@sap.com,Track Managers,FALSE
+Mohammed Sarvar,mohammed.sarvar.k.a@sap.com,Content Specialist,FALSE
+Riya Deb,riya.deb@sap.com,Track Managers,FALSE
+Ramesh Bavalli,ramesh.bavalli@sap.com,Content Specialist,FALSE
+Sahan A M,sahan.a.m@sap.com,Content Specialist,FALSE
+Lavanya B,lava.b@sap.com,Track Managers,FALSE
+Anurag Rungta,aditya.rungta@sap.com,Content Specialist,FALSE
+Vaishnavi R,vaishnavi.r@sap.com,Track Managers,FALSE
+Rukesh Kumar,rukesh.kumar@sap.com,Track Managers,FALSE
+Preethi KR,preethi.k.r@sap.com,Content Specialist,FALSE
+Vijayasree V,vijayasree.v@sap.com,Content Specialist,FALSE
+Mohith Gowda K,mohith.gowda.k@sap.com,Track Managers,FALSE
+Saba Sara,saba.sara@sap.com,Content Specialist,FALSE
+Sanandita Dey,sanandita.dey@sap.com,Track Managers,FALSE
+Pravalika Bachu,pravalika.bachu@sap.com,Track Managers,FALSE
+Vignesh Rajoli,vignesh.rajoli@sap.com,Tshirt Distribution,FALSE
+Prathvi S,prathvi.s@sap.com,Tshirt Distribution,FALSE
+Moumita De,moumita.de@sap.com,SAP for me,FALSE
+Spandana a s,spandana.a.s@sap.com,Tshirt Distribution,FALSE
+Jahnavi M R,jahnavi.m.r@sap.com,SAP for me,FALSE
+Priyanka M,priyanka.m03@sap.com,Tshirt Distribution,FALSE
+Aishwarya BJ,aishwarya.bj@sap.com,Tshirt Distribution,FALSE
+Darshan N,darshan.n02@sap.com,Tshirt Distribution,FALSE
+Rebecca Dingle,r.dingle@sap.com,Tshirt Distribution,FALSE
+Tejaswini BR,tejaswini.br@sap.com,Tshirt Distribution,FALSE
