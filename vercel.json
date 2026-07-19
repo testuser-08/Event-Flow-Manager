@@ -3,7 +3,8 @@
   "buildCommand": "pnpm --filter @workspace/api-server run build && pnpm --filter @workspace/volunteer-hub run build",
   "outputDirectory": "artifacts/volunteer-hub/dist/public",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/handler" }
+    { "source": "/api/(.*)", "destination": "/api/handler" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "functions": {
     "api/handler.mjs": {
