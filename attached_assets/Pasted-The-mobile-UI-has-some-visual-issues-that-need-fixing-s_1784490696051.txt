@@ -1,0 +1,29 @@
+The mobile UI has some visual issues that need fixing — see attached screenshots for reference (channel list screen and individual channel screen, both on a phone).
+
+Issue 1: Unexpected orange/yellow border box around the "ADMIN" channel
+
+In the channel list, the "ADMIN" channel item has a bright orange/yellow border/outline around it that doesn't match the rest of the app's color scheme (dark navy background, blue accents). This looks like an unintended focus outline or leftover debug styling, not an intentional design choice. Please find and remove this — channel list items should have a consistent, clean style, with only subtle/appropriate visual distinction for things like unread counts or active status (the small checkmarks and counts already shown look fine and should stay).
+
+Issue 2: Header icon row is cramped
+
+At the top of the screen, the row of icons (chat, calendar, grid/breakout, shield/admin, dark mode toggle, logout) looks tightly packed with little breathing room between them, especially at phone width. Please add a bit more spacing between these icons, and confirm they all remain easily tappable (adequate touch target size, not just visually spaced) on a typical phone screen width.
+
+Issue 3: General mobile polish pass
+
+Please do a full pass specifically at mobile width (test at a typical phone viewport, e.g. 375-400px wide) across:
+
+
+The channel list screen
+An individual channel/chat screen (as shown in the second screenshot, with the "ALERT ADMINS" button, urgency tag buttons, and message input)
+
+
+Check for and fix:
+
+
+Any cramped spacing, inconsistent padding, or elements that feel squeezed together
+The "ALERT ADMINS" button and the Info/Issue/Urgent tag buttons — confirm they're sized and spaced well for thumb use, and that the layout doesn't feel cluttered
+Confirm text is legible at this width (not truncated awkwardly, not too small)
+Confirm dark mode colors are being applied consistently (no stray light-mode-colored elements slipping through, like that orange box in Issue 1 might be)
+
+
+Please share a few screenshots of the fixed mobile views (channel list and an open channel) once done, so this can be reviewed before considering it complete.
