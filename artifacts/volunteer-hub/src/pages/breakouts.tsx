@@ -1,8 +1,31 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Search, Clock, Bookmark, BookmarkCheck, Filter, X } from 'lucide-react';
+import { Search, Clock, Bookmark, BookmarkCheck, Filter, X, MapPin } from 'lucide-react';
 import { BREAKOUT_TRACKS, BreakoutSession, BreakoutTrack, getItemStatus, toMinutes } from '@/data/event-data';
 
 const BOOKMARK_KEY = 'vhub_bookmarks';
+
+// Map Tailwind bg class → CSS hex so we can use track accent color in inline styles
+const BG_TO_HEX: Record<string, string> = {
+  'bg-blue-600': '#2563eb',
+  'bg-cyan-600': '#0891b2',
+  'bg-cyan-500': '#06b6d4',
+  'bg-purple-600': '#9333ea',
+  'bg-green-600': '#16a34a',
+  'bg-orange-500': '#f97316',
+  'bg-red-600': '#dc2626',
+  'bg-amber-500': '#f59e0b',
+  'bg-teal-600': '#0d9488',
+  'bg-indigo-600': '#4f46e5',
+  'bg-rose-600': '#e11d48',
+  'bg-violet-600': '#7c3aed',
+  'bg-pink-600': '#db2777',
+  'bg-lime-600': '#65a30d',
+  'bg-emerald-600': '#059669',
+  'bg-sky-600': '#0284c7',
+};
+function trackHex(color: string): string {
+  return BG_TO_HEX[color] ?? '#2563eb';
+}
 
 function getNowMinutes(): number {
   const now = new Date();
@@ -28,7 +51,6 @@ function sessionKey(trackId: string, s: BreakoutSession) {
   return `${trackId}|${s.startTime}|${s.title}`;
 }
 
-// Group sessions within a track by timeLabel
 function groupBySlot(sessions: BreakoutSession[]): { timeLabel: string; startTime: string; endTime: string; items: BreakoutSession[] }[] {
   const map = new Map<string, { timeLabel: string; startTime: string; endTime: string; items: BreakoutSession[] }>();
   for (const s of sessions) {
@@ -42,7 +64,6 @@ function groupBySlot(sessions: BreakoutSession[]): { timeLabel: string; startTim
   return [...map.values()].sort((a, b) => toMinutes(a.startTime) - toMinutes(b.startTime));
 }
 
-// Break intervals within the 1:30–4:00 PM window
 const BREAKS = [
   { label: '2:15 PM – 2:30 PM', start: '14:15', end: '14:30' },
   { label: '3:15 PM – 3:30 PM', start: '15:15', end: '15:30' },
@@ -66,38 +87,65 @@ function SearchResults({
 }) {
   if (results.length === 0) {
     return (
-      <div className="text-center py-12 text-muted-foreground font-mono text-sm">
+      <div className="text-center py-14 text-muted-foreground font-mono text-sm">
         No sessions found.
       </div>
     );
   }
 
   return (
-    <div className="space-y-2 p-4">
+    <div className="p-4 space-y-3">
       {results.map(({ track, session }) => {
         const key = sessionKey(track.id, session);
         const isBookmarked = bookmarks.has(key);
         const status = getItemStatus(session.startTime, session.endTime, nowMinutes);
+        const hex = trackHex(track.color);
 
         return (
-          <div key={key} className={`bg-card border-2 border-border p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.15)]`}>
-            <div className="flex items-start gap-2">
-              <div className={`w-1.5 shrink-0 rounded-full self-stretch ${track.color}`} />
+          <div
+            key={key}
+            className="bg-card border border-border rounded-xl overflow-hidden shadow-sm"
+          >
+            {/* Track label strip */}
+            <div
+              className="flex items-center gap-2 px-4 py-2"
+              style={{ backgroundColor: hex + '18' }}
+            >
+              <span
+                className="w-2.5 h-2.5 rounded-full shrink-0"
+                style={{ backgroundColor: hex }}
+              />
+              <span className="font-mono text-[10px] font-black uppercase" style={{ color: hex }}>
+                {track.name}
+              </span>
+              {status === 'current' && (
+                <span
+                  className="ml-auto font-mono text-[10px] font-black px-2 py-0.5 rounded-full text-white uppercase"
+                  style={{ backgroundColor: hex }}
+                >
+                  NOW
+                </span>
+              )}
+              {status === 'past' && (
+                <span className="ml-auto font-mono text-[10px] text-muted-foreground uppercase">ended</span>
+              )}
+            </div>
+            {/* Session body */}
+            <div className="flex items-start gap-3 px-4 py-3.5" style={{ borderLeft: `4px solid ${hex}` }}>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
-                  <span className={`font-mono text-[10px] font-black uppercase px-1.5 py-0.5 ${track.color} text-white`}>{track.name}</span>
-                  {status === 'current' && <span className="bg-primary text-primary-foreground font-mono text-[10px] font-black px-1.5 py-0.5 uppercase">NOW</span>}
-                  {status === 'past' && <span className="font-mono text-[10px] text-muted-foreground uppercase">ended</span>}
-                </div>
-                {session.zone && <p className="text-[10px] font-mono text-muted-foreground">{session.zone}</p>}
+                {session.zone && (
+                  <p className="font-mono text-[11px] font-black uppercase mb-1" style={{ color: hex }}>
+                    {session.zone}
+                  </p>
+                )}
                 <p className="text-sm font-semibold leading-snug">{session.title}</p>
-                <p className="text-[10px] font-mono text-muted-foreground mt-0.5 flex items-center gap-1">
-                  <Clock className="w-3 h-3" />{session.timeLabel}
+                <p className="text-[11px] font-mono text-muted-foreground mt-1.5 flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5" />{session.timeLabel}
                 </p>
               </div>
               <button
                 onClick={() => toggleBookmark(key)}
-                className="shrink-0 p-1 hover:opacity-70 transition-opacity"
+                className="shrink-0 p-1 hover:opacity-70 transition-opacity mt-0.5"
                 title={isBookmarked ? 'Remove bookmark' : 'Bookmark this session'}
               >
                 {isBookmarked
@@ -126,6 +174,7 @@ function TrackTab({
   filterNow: boolean;
 }) {
   const slots = useMemo(() => groupBySlot(track.sessions), [track.sessions]);
+  const hex = trackHex(track.color);
 
   const visibleSlots = filterNow
     ? slots.filter((slot) => getItemStatus(slot.startTime, slot.endTime, nowMinutes) === 'current')
@@ -133,49 +182,76 @@ function TrackTab({
 
   if (visibleSlots.length === 0) {
     return (
-      <div className="p-6 text-center text-muted-foreground font-mono text-sm">
+      <div className="p-10 text-center text-muted-foreground font-mono text-sm">
         Nothing happening right now in this track.
       </div>
     );
   }
 
   return (
-    <div className="p-3 space-y-3">
+    <div className="p-4 space-y-4 pb-8">
       {visibleSlots.map((slot) => {
         const slotStatus = getItemStatus(slot.startTime, slot.endTime, nowMinutes);
         const isActive = slotStatus === 'current';
 
         return (
-          <div key={slot.timeLabel} className={`border-2 ${isActive ? `${track.borderColor} bg-card` : 'border-border bg-card'}`}>
-            {/* Slot header */}
-            <div className={`flex items-center gap-2 px-3 py-2 border-b-2 ${isActive ? track.borderColor : 'border-border'} ${isActive ? `${track.color} text-white` : 'bg-muted/40'}`}>
-              <Clock className="w-3.5 h-3.5 shrink-0" />
-              <span className="font-mono text-xs font-black uppercase tracking-wide">{slot.timeLabel}</span>
-              {isActive && <span className="ml-auto bg-white/20 text-white font-mono text-[10px] font-black px-1.5 py-0.5 uppercase">NOW</span>}
+          <div
+            key={slot.timeLabel}
+            className="rounded-xl overflow-hidden border shadow-sm"
+            style={{ borderColor: isActive ? hex : 'var(--border)' }}
+          >
+            {/* Time slot header */}
+            <div
+              className="flex items-center gap-3 px-5 py-3.5 text-white"
+              style={{
+                background: `linear-gradient(135deg, ${hex}ee 0%, ${hex} 100%)`,
+                boxShadow: isActive ? `0 2px 12px ${hex}55` : undefined,
+              }}
+            >
+              <Clock className="w-4 h-4 shrink-0 opacity-90" />
+              <span className="font-bold text-sm tracking-wide">{slot.timeLabel}</span>
+              {isActive && (
+                <span className="ml-auto bg-white/25 backdrop-blur-sm text-white font-mono text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider">
+                  NOW
+                </span>
+              )}
             </div>
 
-            {/* Sessions in slot */}
-            <div className="divide-y-2 divide-border">
-              {slot.items.map((session) => {
+            {/* Zone sessions */}
+            <div className="bg-card">
+              {slot.items.map((session, i) => {
                 const key = sessionKey(track.id, session);
                 const isBookmarked = bookmarks.has(key);
 
                 return (
-                  <div key={key} className="flex items-start gap-2 px-3 py-2.5">
+                  <div
+                    key={key}
+                    className={`flex items-start gap-3 py-4 pr-4 group transition-colors hover:bg-muted/40 ${
+                      i > 0 ? 'border-t border-border' : ''
+                    }`}
+                    style={{ paddingLeft: '1.25rem', borderLeft: `4px solid ${hex}` }}
+                  >
                     <div className="flex-1 min-w-0">
                       {session.zone && (
-                        <p className={`font-mono text-[10px] font-bold uppercase mb-0.5 ${track.textColor}`}>{session.zone}</p>
+                        <p
+                          className="font-mono text-[11px] font-black uppercase mb-1 tracking-wide"
+                          style={{ color: hex }}
+                        >
+                          {session.zone}
+                        </p>
                       )}
-                      <p className="text-sm font-semibold leading-snug">{session.title}</p>
+                      <p className="text-sm font-semibold leading-snug text-foreground">
+                        {session.title}
+                      </p>
                     </div>
                     <button
                       onClick={() => toggleBookmark(key)}
-                      className="shrink-0 p-1 hover:opacity-70 transition-opacity"
+                      className="shrink-0 p-1.5 hover:opacity-70 transition-opacity mt-0.5"
                       title={isBookmarked ? 'Remove bookmark' : 'Bookmark this session'}
                     >
                       {isBookmarked
                         ? <BookmarkCheck className="w-4 h-4 text-primary" />
-                        : <Bookmark className="w-4 h-4 text-muted-foreground" />}
+                        : <Bookmark className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />}
                     </button>
                   </div>
                 );
@@ -227,62 +303,61 @@ export default function Breakouts() {
     return results;
   }, [query]);
 
-  // Which breaks are currently active
   const activeBreaks = BREAKS.filter((b) => getItemStatus(b.start, b.end, nowMinutes) === 'current');
   const upcomingBreaks = BREAKS.filter((b) => getItemStatus(b.start, b.end, nowMinutes) === 'future');
 
+  const activeTrack = BREAKOUT_TRACKS.find((t) => t.id === activeTab) ?? BREAKOUT_TRACKS[0];
+  const activeHex = trackHex(activeTrack.color);
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-background border-b-2 border-border shrink-0">
-        <div className="px-4 py-3">
+      {/* ── Sticky outer header ─────────────────────────────────── */}
+      <div className="sticky top-0 z-20 bg-background border-b border-border shrink-0">
+        {/* Title */}
+        <div className="px-5 pt-4 pb-2">
           <h1 className="font-mono font-black text-lg uppercase tracking-tight">Breakout Sessions</h1>
           <p className="text-xs text-muted-foreground font-mono mt-0.5">1:30 PM – 4:00 PM · Multiple tracks</p>
         </div>
 
-        {/* Breaks banner */}
-        <div className={`px-4 pb-2 flex flex-col gap-1.5 ${activeBreaks.length === 0 && upcomingBreaks.length === 0 ? 'hidden' : ''}`}>
+        {/* Break banners */}
+        <div className="px-4 pb-2 flex flex-col gap-1.5 empty:hidden">
           {activeBreaks.map((b) => (
-            <div key={b.label} className="bg-amber-400 text-black border-2 border-amber-600 px-3 py-1.5 font-mono text-xs font-black uppercase flex items-center gap-2">
+            <div key={b.label} className="bg-amber-400 text-black border border-amber-600 px-4 py-2 rounded-lg font-mono text-xs font-black uppercase flex items-center gap-2">
               <span>☕</span> BREAK IN PROGRESS · {b.label}
             </div>
           ))}
           {activeBreaks.length === 0 && upcomingBreaks.length > 0 && (
-            <div className="bg-muted border-2 border-border px-3 py-1.5 font-mono text-xs text-muted-foreground flex items-center gap-2">
+            <div className="bg-muted border border-border px-4 py-2 rounded-lg font-mono text-xs text-muted-foreground flex items-center gap-2">
               <span>☕</span> Upcoming breaks: {upcomingBreaks.map((b) => b.label).join(' · ')}
+            </div>
+          )}
+          {activeBreaks.length === 0 && upcomingBreaks.length === 0 && (
+            <div className="bg-muted border border-border px-4 py-2 rounded-lg font-mono text-xs text-muted-foreground flex items-center gap-2">
+              <span>☕</span> Breaks: <strong className="text-foreground">2:15–2:30 PM</strong> &amp; <strong className="text-foreground">3:15–3:30 PM</strong>
             </div>
           )}
         </div>
 
-        {/* Always-visible breaks note when breaks haven't started yet (before 2:15 PM) */}
-        {activeBreaks.length === 0 && upcomingBreaks.length === 0 && (
-          <div className="px-4 pb-2">
-            <div className="bg-muted border-2 border-border px-3 py-1.5 font-mono text-xs text-muted-foreground flex items-center gap-2">
-              <span>☕</span> Breaks within this window: <strong className="text-foreground">2:15–2:30 PM</strong> & <strong className="text-foreground">3:15–3:30 PM</strong>
-            </div>
-          </div>
-        )}
-
         {/* Search + filter */}
         <div className="px-4 pb-3 flex gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             <input
               type="text"
-              placeholder='Search sessions (e.g. "Joule")'
+              placeholder='Search sessions…'
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-8 pr-8 py-2 text-sm bg-muted border-2 border-border font-mono focus:outline-none focus:border-primary"
+              className="w-full pl-9 pr-8 py-2.5 text-sm bg-muted border border-border rounded-lg font-mono focus:outline-none focus:border-primary transition-colors"
             />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                 <X className="w-4 h-4" />
               </button>
             )}
           </div>
           <button
             onClick={() => setFilterNow((v) => !v)}
-            className={`flex items-center gap-1.5 px-3 py-2 border-2 font-mono text-xs font-bold uppercase transition-colors ${
+            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-lg border font-mono text-xs font-bold uppercase transition-colors ${
               filterNow
                 ? 'bg-primary text-primary-foreground border-primary'
                 : 'bg-muted border-border text-muted-foreground hover:text-foreground hover:border-foreground'
@@ -293,12 +368,54 @@ export default function Breakouts() {
             Now
           </button>
         </div>
+
+        {/* Track tabs */}
+        <div className="overflow-x-auto border-t border-border">
+          <div className="flex min-w-max">
+            {BREAKOUT_TRACKS.map((track) => {
+              const isActive = activeTab === track.id;
+              const hex = trackHex(track.color);
+              const nowCount = track.sessions.filter(
+                (s) => getItemStatus(s.startTime, s.endTime, nowMinutes) === 'current'
+              ).length;
+
+              return (
+                <button
+                  key={track.id}
+                  onClick={() => setActiveTab(track.id)}
+                  style={{ borderBottomColor: isActive ? hex : 'transparent', color: isActive ? hex : undefined }}
+                  className={`relative px-5 py-3 text-xs font-bold uppercase whitespace-nowrap border-b-[3px] transition-all ${
+                    isActive
+                      ? 'bg-background font-black'
+                      : 'text-muted-foreground hover:text-foreground bg-background hover:bg-muted/40'
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
+                      style={{ backgroundColor: hex }}
+                    />
+                    <span>{track.name}</span>
+                    {nowCount > 0 && !filterNow && (
+                      <span
+                        className="text-white font-mono text-[9px] font-black min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1"
+                        style={{ backgroundColor: hex }}
+                      >
+                        {nowCount}
+                      </span>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
-      {/* Search results overlay */}
+      {/* ── Content ──────────────────────────────────────────────── */}
       {isSearching ? (
         <div className="flex-1 overflow-auto">
-          <div className="px-4 pt-3 pb-1 font-mono text-xs text-muted-foreground font-bold uppercase">
+          <div className="px-5 pt-4 pb-1 font-mono text-xs text-muted-foreground font-bold uppercase">
             {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} for "{query}"
           </div>
           <SearchResults
@@ -310,56 +427,27 @@ export default function Breakouts() {
         </div>
       ) : (
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Track tabs */}
-          <div className="shrink-0 border-b-2 border-border overflow-x-auto">
-            <div className="flex min-w-max">
-              {BREAKOUT_TRACKS.map((track) => {
-                const isActive = activeTab === track.id;
-                // Count "now" sessions in this track
-                const nowCount = track.sessions.filter(
-                  (s) => getItemStatus(s.startTime, s.endTime, nowMinutes) === 'current'
-                ).length;
-
-                return (
-                  <button
-                    key={track.id}
-                    onClick={() => setActiveTab(track.id)}
-                    className={`relative px-4 py-3 font-mono text-xs font-bold uppercase whitespace-nowrap border-r-2 border-border transition-colors ${
-                      isActive
-                        ? 'bg-foreground text-background'
-                        : 'bg-background text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                    }`}
-                  >
-                    <span className={`inline-block w-2 h-2 rounded-full mr-1.5 ${track.color}`} />
-                    {track.name}
-                    {nowCount > 0 && !filterNow && (
-                      <span className="ml-1.5 bg-primary text-primary-foreground font-mono text-[9px] font-black px-1 py-0.5 rounded-full align-middle">
-                        {nowCount}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Active track content */}
           <div className="flex-1 overflow-auto">
-            {BREAKOUT_TRACKS.filter((t) => t.id === activeTab).map((track) => (
-              <div key={track.id}>
-                {/* Track meta */}
-                <div className={`px-4 py-2 border-b-2 border-border flex items-center gap-2 ${track.color} text-white`}>
-                  <span className="font-mono text-[10px] font-black uppercase">{track.location}</span>
-                </div>
-                <TrackTab
-                  track={track}
-                  bookmarks={bookmarks}
-                  toggleBookmark={toggleBookmark}
-                  nowMinutes={nowMinutes}
-                  filterNow={filterNow}
-                />
-              </div>
-            ))}
+            {/* ── Sticky location banner ── */}
+            <div
+              className="sticky top-0 z-10 flex items-center gap-3 px-5 py-4 text-white"
+              style={{
+                background: `linear-gradient(135deg, ${activeHex}f0 0%, ${activeHex} 100%)`,
+                boxShadow: `0 2px 12px ${activeHex}40`,
+              }}
+            >
+              <MapPin className="w-5 h-5 shrink-0" />
+              <span className="font-bold text-base tracking-tight">{activeTrack.location}</span>
+            </div>
+
+            {/* Active track sessions */}
+            <TrackTab
+              track={activeTrack}
+              bookmarks={bookmarks}
+              toggleBookmark={toggleBookmark}
+              nowMinutes={nowMinutes}
+              filterNow={filterNow}
+            />
           </div>
         </div>
       )}

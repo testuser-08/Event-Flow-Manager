@@ -1,0 +1,37 @@
+The Breakout Sessions screen works functionally, but the visual design needs a real upgrade — it currently looks flat and utilitarian. Please redesign it with these specific changes:
+
+Location banner — currently too small, easy to miss
+
+This is one of the most important pieces of info on the whole screen (where do I physically walk to), and right now it's a thin, low-contrast strip. Fix:
+
+
+Make it visually the most prominent element under the tab bar — larger text, bolder weight, more vertical padding
+Add a location/map-pin icon before the text, sized to match the text (not a tiny icon next to large text)
+Consider making it sticky/pinned at the top of the content area as the user scrolls, so it's always visible regardless of which time slot they've scrolled to
+
+
+Overall visual polish
+
+
+Add more breathing room — increase padding inside cards and spacing between them; right now zones are packed tightly with thin dividers, which reads as cramped
+Give each time-slot block (the "1:30 PM – 2:30 PM" header bars) a stronger visual treatment — right now they're a flat teal bar; consider a gradient, subtle shadow, or rounded corners to feel more like a designed card and less like a table row
+The clock icon next to time ranges is currently tiny and low-contrast gray — increase its size slightly and give it more visual weight so the time is easier to scan at a glance
+Zone labels ("ZONE 1", "ZONE 2") are currently small uppercase gray text sitting right above the session name with very little visual separation — give each zone entry more distinct visual grouping, e.g. a subtle background tint, a colored left border accent matching the track's color, or a small icon
+
+
+Tabs
+
+
+Current tabs are plain text pills in a horizontal scroll — make the active tab more visually distinct (not just a dark background swap) — consider adding the track's assigned color as an accent (underline, left icon, or background tint matching that track's color from the color-coding system already in place)
+Ensure the session count badge (e.g. "6", "4", "2" currently shown next to track names) is styled consistently and doesn't look like an afterthought
+
+
+General direction
+
+
+Aim for a modern, polished conference-app feel — think Luma, Partiful, or a well-designed Eventbrite session schedule — rather than a plain internal admin table
+Maintain full readability and the existing dark mode support
+Don't change any of the underlying data, search, filter, or bookmark functionality — this is a visual-only pass
+
+
+Please share a screenshot or preview once done so it can be reviewed before moving on.
