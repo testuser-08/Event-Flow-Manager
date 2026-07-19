@@ -15,7 +15,7 @@ import ScheduleEditor from './schedule-editor';
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
 
-function authHeaders() {
+function authHeaders(): HeadersInit {
   const token = localStorage.getItem('vhub_token');
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
