@@ -1,2 +1,3 @@
-- [Volunteer Hub Supabase setup](volunteer-hub-supabase.md) — tables not auto-created; run setup.sql once, then migration-v2.sql for JWT auth swap.
+- [Volunteer Hub Supabase setup](volunteer-hub-supabase.md) — tables not auto-created; run setup.sql once, then migration-v2.sql for JWT auth swap, migration-v3.sql for avatar_url column.
 - [Zod v3 + Orval UUID format](orval-zod-compat.md) — `format: uuid/email` in OpenAPI spec causes orval to emit `zod.uuid()` which doesn't exist in Zod v3; strip those formats from property schemas.
+- [Avatar column migration](volunteer-hub-supabase.md) — avatar_url column is optional (migration-v3.sql); auth routes try-catch the select so app works without it (shows initials avatar). Avatars bucket "avatars" already created in Supabase Storage.

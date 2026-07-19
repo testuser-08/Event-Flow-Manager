@@ -9,6 +9,7 @@ export interface VolunteerSession {
   name: string;
   workstreams: string[];
   isAdmin: boolean;
+  avatarUrl: string | null;
 }
 
 type AuthContextType = {
@@ -17,6 +18,7 @@ type AuthContextType = {
   isLoading: boolean;
   login: (email: string) => Promise<{ error?: string }>;
   signOut: () => void;
+  updateAvatar: (url: string) => void;
 };
 
 const AuthContext = createContext<AuthContextType>({
@@ -25,6 +27,7 @@ const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   login: async () => ({}),
   signOut: () => {},
+  updateAvatar: () => {},
 });
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -42,27 +45,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [volunteer, setVolunteer] = useState<VolunteerSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Wire up the token getter so all Orval-generated hooks send the auth header
   useEffect(() => {
     setAuthTokenGetter(() => localStorage.getItem(TOKEN_KEY));
     return () => setAuthTokenGetter(null);
   }, []);
 
-  // On mount, restore session from localStorage token
   useEffect(() => {
     const token = localStorage.getItem(TOKEN_KEY);
-    if (!token) {
-      setIsLoading(false);
-      return;
-    }
-    // Validate token against server and confirm still on roster
+    if (!token) { setIsLoading(false); return; }
     apiFetch('/api/auth/me')
       .then(({ ok, data }) => {
-        if (ok && data?.volunteerId) {
-          setVolunteer(data as VolunteerSession);
-        } else {
-          localStorage.removeItem(TOKEN_KEY);
-        }
+        if (ok && data?.volunteerId) setVolunteer(data as VolunteerSession);
+        else localStorage.removeItem(TOKEN_KEY);
       })
       .catch(() => localStorage.removeItem(TOKEN_KEY))
       .finally(() => setIsLoading(false));
@@ -73,11 +67,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       method: 'POST',
       body: JSON.stringify({ email: rawEmail }),
     });
-
-    if (!ok) {
-      return { error: data?.error ?? 'Login failed. Please try again.' };
-    }
-
+    if (!ok) return { error: data?.error ?? 'Login failed. Please try again.' };
     localStorage.setItem(TOKEN_KEY, data.token);
     setVolunteer(data.volunteer as VolunteerSession);
     return {};
@@ -88,8 +78,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setVolunteer(null);
   }, []);
 
+  const updateAvatar = useCallback((url: string) => {
+    setVolunteer((prev) => prev ? { ...prev, avatarUrl: url } : prev);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ volunteer, isAdmin: volunteer?.isAdmin ?? false, isLoading, login, signOut }}>
+    <AuthContext.Provider value={{ volunteer, isAdmin: volunteer?.isAdmin ?? false, isLoading, login, signOut, updateAvatar }}>
       {children}
     </AuthContext.Provider>
   );

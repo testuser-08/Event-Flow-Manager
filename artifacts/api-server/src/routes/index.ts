@@ -7,6 +7,7 @@ import alertsActiveRouter from "./alerts-active.js";
 import authRouter from "./auth.js";
 import messagesRouter from "./messages.js";
 import alertsWriteRouter from "./alerts-write.js";
+import profileRouter from "./profile.js";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(alertsWriteRouter);
 router.use(adminRosterRouter);
 router.use(channelsSummaryRouter);
 router.use(alertsActiveRouter);
+router.use(profileRouter);
 
 export default router;

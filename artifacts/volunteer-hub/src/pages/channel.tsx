@@ -6,6 +6,8 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Send, AlertTriangle, AlertCircle, Info, Image as ImageIcon, Check, ShieldAlert, Lock, WifiOff, Wifi, Trash2 } from 'lucide-react';
+import ChannelIcon from '@/components/shared/ChannelIcon';
+import Avatar from '@/components/shared/Avatar';
 import { Link } from 'wouter';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { format } from 'date-fns';

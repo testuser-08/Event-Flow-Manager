@@ -63,6 +63,17 @@ router.post("/auth/login", loginLimiter, async (req, res) => {
       isAdmin: data.is_admin ?? false,
     });
 
+    // Try to fetch avatar_url separately (column may not exist until migration runs)
+    let avatarUrl: string | null = null;
+    try {
+      const { data: av } = await supabaseAdmin
+        .from("volunteers")
+        .select("avatar_url")
+        .eq("id", data.id)
+        .maybeSingle();
+      avatarUrl = av?.avatar_url ?? null;
+    } catch { /* migration not run yet — fine, defaults to initials avatar */ }
+
     res.json({
       token,
       volunteer: {
@@ -71,6 +82,7 @@ router.post("/auth/login", loginLimiter, async (req, res) => {
         name: data.name,
         workstreams: data.workstreams ?? [],
         isAdmin: data.is_admin ?? false,
+        avatarUrl,
       },
     });
   } catch (err) {
@@ -94,12 +106,24 @@ router.get("/auth/me", requireAuth, async (req, res) => {
       return;
     }
 
+    // Try to fetch avatar_url separately (column may not exist until migration runs)
+    let avatarUrl: string | null = null;
+    try {
+      const { data: av } = await supabaseAdmin
+        .from("volunteers")
+        .select("avatar_url")
+        .eq("id", data.id)
+        .maybeSingle();
+      avatarUrl = av?.avatar_url ?? null;
+    } catch { /* migration not run yet */ }
+
     res.json({
       volunteerId: data.id,
       email: data.email,
       name: data.name,
       workstreams: data.workstreams ?? [],
       isAdmin: data.is_admin ?? false,
+      avatarUrl,
     });
   } catch (err) {
     logger.error({ err }, "auth/me error");

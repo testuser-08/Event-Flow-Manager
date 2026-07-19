@@ -1,6 +1,7 @@
 import { useGetChannelsSummary } from '@workspace/api-client-react';
 import { Link } from 'wouter';
-import { ChevronRight, MessageSquare, AlertCircle, AlertTriangle } from 'lucide-react';
+import { ChevronRight, AlertCircle, AlertTriangle } from 'lucide-react';
+import ChannelIcon from '@/components/shared/ChannelIcon';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -42,7 +43,7 @@ export default function ChannelsList() {
                     <div className={`p-1.5 rounded-sm shrink-0 ${
                       hasUrgent ? 'bg-red-600 text-white' : hasIssue ? 'bg-amber-500 text-black' : 'bg-primary text-primary-foreground'
                     }`}>
-                      <MessageSquare className="w-4 h-4" />
+                      <ChannelIcon slug={channel.slug} name={channel.name} className="w-4 h-4" />
                     </div>
                     <h3 className="font-bold text-base uppercase tracking-tight truncate">{channel.name}</h3>
                   </div>
