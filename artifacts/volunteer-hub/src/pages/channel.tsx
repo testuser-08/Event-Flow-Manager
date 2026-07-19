@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMessages, SupabaseMessage } from '@/hooks/use-messages';
+import { useChannelPresence } from '@/hooks/use-channel-presence';
 import { useGetChannelsSummary } from '@workspace/api-client-react';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
@@ -81,6 +82,11 @@ export default function ChannelDetail({ slug }: { slug: string }) {
   const { data: channels } = useGetChannelsSummary();
   const channel = channels?.find((c) => c.slug === slug);
   const { messages, loading, connectionStatus, removeMessage, resolveMessage } = useMessages(channel?.id);
+  const presentUsers = useChannelPresence(channel?.id, volunteer ? {
+    volunteerId: volunteer.volunteerId,
+    name: volunteer.name,
+    avatarUrl: volunteer.avatarUrl,
+  } : null);
 
   const [content, setContent] = useState('');
   const [urgency, setUrgency] = useState<'info' | 'issue' | 'urgent'>('info');
@@ -188,19 +194,20 @@ export default function ChannelDetail({ slug }: { slug: string }) {
   return (
     <div className="flex-1 flex flex-col h-full bg-muted/20 relative">
       {/* Header */}
-      <div className="bg-card border-b-2 border-border p-3 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-3">
-          <Link href="/channels" className="p-2 -ml-2 hover:bg-muted rounded-none transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div>
-            <h1 className="font-bold text-lg leading-tight uppercase tracking-tight">{channel.name}</h1>
-            <p className="text-xs font-mono text-muted-foreground">
-              {canWrite ? 'Workstream Channel' : 'Read-only'}
-            </p>
+      <div className="bg-card border-b-2 border-border shrink-0">
+        <div className="p-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link href="/channels" className="p-2 -ml-2 hover:bg-muted rounded-none transition-colors">
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+            <div>
+              <h1 className="font-bold text-lg leading-tight uppercase tracking-tight">{channel.name}</h1>
+              <p className="text-xs font-mono text-muted-foreground">
+                {canWrite ? 'Workstream Channel' : 'Read-only'}
+              </p>
+            </div>
           </div>
-        </div>
-        <Dialog open={alertOpen} onOpenChange={setAlertOpen}>
+          <Dialog open={alertOpen} onOpenChange={setAlertOpen}>
           <DialogTrigger asChild>
             <Button variant="destructive" className="rounded-none border-2 font-bold uppercase tracking-wider h-10 px-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-y-[2px] hover:translate-x-[2px] transition-all">
               <ShieldAlert className="w-4 h-4 mr-2" />
@@ -228,6 +235,28 @@ export default function ChannelDetail({ slug }: { slug: string }) {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
+
+        {/* Presence strip — who's currently in this channel */}
+        {presentUsers.length > 0 && (
+          <div className="border-t border-border/50 px-3 py-2 flex items-center gap-2 bg-muted/30">
+            <div className="flex items-center -space-x-2">
+              {presentUsers.slice(0, 7).map((u) => (
+                <div key={u.volunteerId} title={u.name} className="ring-2 ring-card rounded-full">
+                  <Avatar name={u.name} avatarUrl={u.avatarUrl} size={24} />
+                </div>
+              ))}
+            </div>
+            <span className="text-xs font-mono text-muted-foreground">
+              {presentUsers.length === 1
+                ? '1 person here now'
+                : `${presentUsers.length} people here now`}
+              {' — '}
+              {presentUsers.slice(0, 3).map((u) => u.name.split(' ')[0]).join(', ')}
+              {presentUsers.length > 3 && ` +${presentUsers.length - 3} more`}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Reconnect banner */}
