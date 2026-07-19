@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Search, Clock, Bookmark, BookmarkCheck, Filter, X, MapPin } from 'lucide-react';
+import { Search, Clock, Bookmark, BookmarkCheck, Filter, X, MapPin, ChevronDown } from 'lucide-react';
 import { useGetBreakouts } from '@workspace/api-client-react';
 import type { BreakoutTrack, BreakoutSessionRow } from '@workspace/api-client-react';
 
@@ -205,6 +205,46 @@ function TrackTab({
     ? slots.filter((slot) => getItemStatus(slot.startTime, slot.endTime, nowMinutes) === 'current')
     : slots;
 
+  // Track which time-slot blocks are expanded (by timeLabel key)
+  const [expandedSlots, setExpandedSlots] = useState<Set<string>>(new Set());
+
+  // Auto-expand current slots when Now filter activates, or when the clock
+  // ticks a slot into "current" while Now filter is on
+  useEffect(() => {
+    if (filterNow) {
+      setExpandedSlots((prev) => {
+        const next = new Set(prev);
+        visibleSlots.forEach((slot) => next.add(slot.timeLabel));
+        return next;
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterNow, nowMinutes]);
+
+  // Also auto-expand any slot that is currently active (independent of filter)
+  useEffect(() => {
+    const currentSlotLabels = slots
+      .filter((slot) => getItemStatus(slot.startTime, slot.endTime, nowMinutes) === 'current')
+      .map((slot) => slot.timeLabel);
+    if (currentSlotLabels.length > 0) {
+      setExpandedSlots((prev) => {
+        const next = new Set(prev);
+        currentSlotLabels.forEach((label) => next.add(label));
+        return next;
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nowMinutes]);
+
+  const toggleSlot = (timeLabel: string) => {
+    setExpandedSlots((prev) => {
+      const next = new Set(prev);
+      if (next.has(timeLabel)) next.delete(timeLabel);
+      else next.add(timeLabel);
+      return next;
+    });
+  };
+
   if (visibleSlots.length === 0) {
     return (
       <div className="p-10 text-center text-muted-foreground font-mono text-sm">
@@ -218,6 +258,7 @@ function TrackTab({
       {visibleSlots.map((slot) => {
         const slotStatus = getItemStatus(slot.startTime, slot.endTime, nowMinutes);
         const isActive = slotStatus === 'current';
+        const isExpanded = expandedSlots.has(slot.timeLabel);
 
         return (
           <div
@@ -225,63 +266,70 @@ function TrackTab({
             className="rounded-xl overflow-hidden border shadow-sm"
             style={{ borderColor: isActive ? hex : 'var(--border)' }}
           >
-            {/* Time slot header */}
-            <div
-              className="flex items-center gap-3 px-5 py-3.5 text-white"
+            {/* Time slot header — clickable to expand/collapse */}
+            <button
+              onClick={() => toggleSlot(slot.timeLabel)}
+              className="w-full flex items-center gap-3 px-5 py-3.5 text-white text-left"
               style={{
                 background: `linear-gradient(135deg, ${hex}ee 0%, ${hex} 100%)`,
                 boxShadow: isActive ? `0 2px 12px ${hex}55` : undefined,
               }}
             >
               <Clock className="w-4 h-4 shrink-0 opacity-90" />
-              <span className="font-bold text-sm tracking-wide">{slot.timeLabel}</span>
+              <span className="font-bold text-sm tracking-wide flex-1">{slot.timeLabel}</span>
               {isActive && (
-                <span className="ml-auto bg-white/25 backdrop-blur-sm text-white font-mono text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider">
+                <span className="bg-white/25 backdrop-blur-sm text-white font-mono text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider">
                   NOW
                 </span>
               )}
-            </div>
+              <ChevronDown
+                className="w-4 h-4 shrink-0 opacity-80 transition-transform duration-200"
+                style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
+              />
+            </button>
 
-            {/* Zone sessions */}
-            <div className="bg-card">
-              {slot.items.map((session, i) => {
-                const key = sessionKey(track.id, session);
-                const isBookmarked = bookmarks.has(key);
+            {/* Zone sessions — hidden when collapsed */}
+            {isExpanded && (
+              <div className="bg-card">
+                {slot.items.map((session, i) => {
+                  const key = sessionKey(track.id, session);
+                  const isBookmarked = bookmarks.has(key);
 
-                return (
-                  <div
-                    key={key}
-                    className={`flex items-start gap-3 py-4 pr-4 group transition-colors hover:bg-muted/40 ${
-                      i > 0 ? 'border-t border-border' : ''
-                    }`}
-                    style={{ paddingLeft: '1.25rem', borderLeft: `4px solid ${hex}` }}
-                  >
-                    <div className="flex-1 min-w-0">
-                      {session.zone && (
-                        <p
-                          className="font-mono text-[11px] font-black uppercase mb-1 tracking-wide"
-                          style={{ color: hex }}
-                        >
-                          {session.zone}
-                        </p>
-                      )}
-                      <p className="text-sm font-semibold leading-snug text-foreground">
-                        {session.title}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => toggleBookmark(key)}
-                      className="shrink-0 p-1.5 hover:opacity-70 transition-opacity mt-0.5"
-                      title={isBookmarked ? 'Remove bookmark' : 'Bookmark this session'}
+                  return (
+                    <div
+                      key={key}
+                      className={`flex items-start gap-3 py-4 pr-4 group transition-colors hover:bg-muted/40 ${
+                        i > 0 ? 'border-t border-border' : ''
+                      }`}
+                      style={{ paddingLeft: '1.25rem', borderLeft: `4px solid ${hex}` }}
                     >
-                      {isBookmarked
-                        ? <BookmarkCheck className="w-4 h-4 text-primary" />
-                        : <Bookmark className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
+                      <div className="flex-1 min-w-0">
+                        {session.zone && (
+                          <p
+                            className="font-mono text-[11px] font-black uppercase mb-1 tracking-wide"
+                            style={{ color: hex }}
+                          >
+                            {session.zone}
+                          </p>
+                        )}
+                        <p className="text-sm font-semibold leading-snug text-foreground">
+                          {session.title}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => toggleBookmark(key)}
+                        className="shrink-0 p-1.5 hover:opacity-70 transition-opacity mt-0.5"
+                        title={isBookmarked ? 'Remove bookmark' : 'Bookmark this session'}
+                      >
+                        {isBookmarked
+                          ? <BookmarkCheck className="w-4 h-4 text-primary" />
+                          : <Bookmark className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         );
       })}
