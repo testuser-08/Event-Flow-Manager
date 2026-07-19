@@ -80,7 +80,7 @@ export default function ChannelDetail({ slug }: { slug: string }) {
   const { volunteer } = useAuth();
   const { data: channels } = useGetChannelsSummary();
   const channel = channels?.find((c) => c.slug === slug);
-  const { messages, loading, connectionStatus } = useMessages(channel?.id);
+  const { messages, loading, connectionStatus, removeMessage, resolveMessage } = useMessages(channel?.id);
 
   const [content, setContent] = useState('');
   const [urgency, setUrgency] = useState<'info' | 'issue' | 'urgent'>('info');
@@ -151,15 +151,18 @@ export default function ChannelDetail({ slug }: { slug: string }) {
 
   const handleResolve = async (messageId: string) => {
     if (!volunteer) return;
+    resolveMessage(messageId); // optimistic
     const { ok } = await apiPatch(`/api/messages/${messageId}/resolve`, {});
     if (!ok) toast.error('Could not resolve message. Please try again.');
   };
 
   const confirmDelete = async () => {
     if (!deletePendingId) return;
-    const { ok } = await apiDelete(`/api/messages/${deletePendingId}`);
-    if (!ok) toast.error('Could not delete message. Please try again.');
+    const idToDelete = deletePendingId;
     setDeletePendingId(null);
+    removeMessage(idToDelete); // optimistic — remove instantly
+    const { ok } = await apiDelete(`/api/messages/${idToDelete}`);
+    if (!ok) toast.error('Could not delete message. Please try again.');
   };
 
   const handleAlert = async (e: React.FormEvent) => {

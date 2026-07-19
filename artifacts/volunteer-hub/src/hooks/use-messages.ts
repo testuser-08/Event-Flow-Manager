@@ -90,5 +90,9 @@ export function useMessages(channelId?: string) {
     };
   }, [channelId]);
 
-  return { messages, loading, connectionStatus };
+  const removeMessage = (id: string) => setMessages((prev) => prev.filter((m) => m.id !== id));
+  const resolveMessage = (id: string) =>
+    setMessages((prev) => prev.map((m) => m.id === id ? { ...m, is_resolved: true } : m));
+
+  return { messages, loading, connectionStatus, removeMessage, resolveMessage };
 }
