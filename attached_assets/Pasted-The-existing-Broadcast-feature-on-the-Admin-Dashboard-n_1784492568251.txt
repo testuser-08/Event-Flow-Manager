@@ -1,0 +1,73 @@
+The existing Broadcast feature on the Admin Dashboard needs a real upgrade — right now it just posts a message somewhere, but it should actually get in front of people, and give admins control over who receives it. Also included below: a new voice note feature for regular chat, since the broadcast composer should support it too once built.
+
+Feature A: Voice notes in regular chat
+
+Add a voice note feature to the chat, similar to WhatsApp's voice message button — alongside the existing text input and photo upload option in each channel.
+
+Recording
+
+
+Add a microphone icon button next to the existing message input/photo upload button
+Tapping it starts recording (using the browser's microphone, with a permission prompt on first use)
+Show a clear recording indicator while active (e.g. a red pulsing dot and a live timer counting up)
+Tapping again (or a stop button) ends the recording and lets the user either send it or discard/re-record before sending — don't auto-send immediately on stop, give a brief preview/confirm step
+Set a reasonable max recording length (e.g. 2 minutes) to avoid huge files, and show a warning as it approaches the limit
+
+
+Storage
+
+
+Upload the recorded audio to Supabase Storage, similar to how message photos are already handled (reuse that same pattern/bucket approach — a new bucket like message-voice-notes is fine if cleaner than reusing the photos bucket)
+Store the resulting audio URL on the message record (similar to how photo_url already works — an equivalent voice_note_url field makes sense)
+
+
+Playback
+
+
+In the chat, a message containing a voice note should show a compact audio player — play/pause button, a simple progress indicator, and the duration — not just a raw browser <audio> control if it can be styled to match the app's existing look
+Should work smoothly on both mobile and desktop, and respect dark mode
+
+
+Permissions & fallbacks
+
+
+If microphone permission is denied or unavailable, show a clear, friendly message rather than a silent failure or a raw browser error
+Voice notes should follow the same read/write permission rules as regular messages — a volunteer can record in their own workstream channel(s), read-only elsewhere, admins can post everywhere
+
+
+Feature B: Broadcast overhaul
+
+Issue 1: Broadcasts should actually notify people, not just post quietly
+
+Right now, sending a broadcast doesn't appear to interrupt or notify anyone — someone has to already be looking at the right channel to see it. Please fix this so a broadcast actually surfaces to recipients:
+
+
+When a broadcast is sent, show a popup/banner alert to every affected user currently active in the app — not just a normal chat message they might scroll past. A clear, attention-grabbing modal or top banner (e.g. "📢 Announcement from Admin: [message]") that they have to acknowledge/dismiss is the goal
+If browser push notifications are already working elsewhere in the app (e.g. for urgent tags), reuse that same mechanism so people get notified even if the app isn't currently open/focused
+The broadcast should also still be saved as a real message in the relevant channel(s), so people who missed the popup can scroll back and see it later — the popup is in addition to, not instead of, a persistent record
+
+
+Issue 2: Allow voice notes in broadcasts
+
+Once Feature A (voice notes) above is built, the Broadcast composer should support sending a voice note as well as text — same recording/preview/send flow as a regular channel message.
+
+Issue 3: Let the admin choose which channels receive the broadcast
+
+Right now broadcasts presumably go to one fixed place (e.g. "All Hands" only). Instead, give the admin a way to select the target(s) before sending:
+
+
+A multi-select control listing all channels (Admin, PR, Sherpa, Registration Desk, Feedback, Support Acc, Content Specialist, Track Managers, Tshirt Distribution, SAP for me)
+Include a quick "Select All" option for the common case of a truly all-hands announcement
+Admin can pick any combination — e.g. just PR, or PR + Admin, or everyone — and the broadcast (both the popup and the saved message) only goes to the selected channels' members
+Show a brief confirmation before sending if more than one channel is selected (e.g. "Send to 3 channels: PR, Admin, Feedback?") so it's not accidentally blasted to the wrong group
+
+
+Mobile compatibility
+
+This entire broadcast composer (text/voice input, channel multi-select, send button) needs to work cleanly on a phone screen — test at mobile width specifically, not just desktop. The channel multi-select in particular should be easy to use with a thumb (e.g. tappable chips or checkboxes, not a tiny dropdown that's hard to interact with on mobile).
+
+Testing before confirming done
+
+Please actually test sending a broadcast end-to-end: select a couple of specific channels, send a text broadcast, confirm the popup actually appears for a user in one of those channels (and does NOT appear for someone in an unselected channel), and confirm the message is saved and visible afterward. Confirm this on the live production deployment, not just locally, and confirm it works on a phone-sized screen.
+
+If anything here seems complex enough to risk destabilizing what's already working this close to the event, flag that to me before building rather than pushing ahead.
