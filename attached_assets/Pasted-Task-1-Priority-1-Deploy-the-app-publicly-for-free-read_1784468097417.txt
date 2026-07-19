@@ -1,0 +1,31 @@
+Task 1 (Priority 1): Deploy the app publicly for free, ready for 200 users
+
+Please deploy this app to Vercel for free, permanent hosting so all ~200 volunteers can access it via a stable URL. Steps:
+
+
+Push the current codebase to a new GitHub repository (create one if it doesn't exist yet)
+Connect that repository to Vercel and deploy it there (Vercel's free tier is sufficient for this — no paid plan needed)
+In Vercel's project settings → Environment Variables, add the same Supabase Project URL and key that are currently configured — these need to be re-entered in Vercel, they don't transfer automatically
+Give me the final live URL once deployed (should look like something.vercel.app)
+Confirm the app builds and runs cleanly on Vercel — not just that the deploy succeeded, but that you've checked the live URL actually loads the login page correctly
+
+
+After you give me the URL, I will separately update Supabase's Authentication → URL Configuration to point to it — let me know once you're done so I can do that step.
+
+Please prioritize this task above everything else in the queue right now.
+
+
+Task 2 (Priority 2): Make the app installable like a native app on Android and iOS, for free
+
+Please confirm and, if needed, finish setting this up as a fully installable Progressive Web App (PWA), so volunteers can add it to their home screen and use it like a native app — no app store required, completely free:
+
+
+Confirm a proper web app manifest (manifest.json) exists with the app name, icons (multiple sizes, including a nice app icon — not just a favicon), theme color, and display mode set to standalone (so it opens without browser address bars, like a real app)
+Confirm a service worker is registered so the app can be installed and has basic offline resilience (this may already be partially done from earlier reliability work — please verify, don't rebuild if it's already there)
+Add a friendly one-time prompt or banner (dismissible) that appears for first-time visitors on mobile, suggesting they "Add to Home Screen" for the best experience, with a short explanation of how to do it on both iOS Safari and Android Chrome (the steps differ slightly between the two, so the instructions shown should match whichever browser they're using if possible)
+Test that after adding to home screen, the app opens in standalone/full-screen mode (not inside a browser tab) on both an Android phone and an iPhone if you're able to verify this
+
+
+Note on true native App Store / Play Store apps
+
+Please do not attempt to build or submit to the Apple App Store or Google Play Store — those require paid developer accounts ($99/year for Apple, $25 one-time for Google) and a significantly longer review/build process, which isn't compatible with a free, fast timeline. The PWA install approach above is the correct free equivalent for now. If a true native app is wanted later, that's a separate, larger, paid project to plan for after the event.
