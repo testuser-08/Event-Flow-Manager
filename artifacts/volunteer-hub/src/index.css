@@ -70,7 +70,7 @@
   --accent: 214 50% 93%;
   --accent-foreground: 214 89% 37%;
 
-  --destructive: 0 84% 55%;
+  --destructive: 0 84% 50%;
   --destructive-foreground: 0 0% 100%;
 
   --border: 214 25% 85%;
@@ -92,7 +92,7 @@
   --popover-foreground: 210 20% 95%;
   --popover-border: 214 25% 20%;
 
-  --primary: 214 89% 57%;
+  --primary: 214 89% 60%;
   --primary-foreground: 0 0% 100%;
 
   --secondary: 214 30% 18%;
@@ -104,12 +104,12 @@
   --accent: 214 30% 18%;
   --accent-foreground: 214 70% 80%;
 
-  --destructive: 0 72% 50%;
+  --destructive: 0 75% 55%;
   --destructive-foreground: 0 0% 100%;
 
   --border: 214 20% 22%;
   --input: 214 20% 22%;
-  --ring: 214 89% 57%;
+  --ring: 214 89% 60%;
 }
 
 @layer base {
@@ -121,6 +121,7 @@
   }
 }
 
+/* ── Urgency badge classes ── */
 .status-urgent {
   @apply bg-red-600 text-white border-red-700 shadow-sm font-bold;
 }
@@ -129,4 +130,26 @@
 }
 .status-info {
   @apply bg-emerald-500 text-white border-emerald-600 shadow-sm font-bold;
+}
+
+/* ── Active alert pulse animation ── */
+@keyframes alert-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7), 2px 2px 0px 0px rgba(0,0,0,1);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(220, 38, 38, 0), 2px 2px 0px 0px rgba(0,0,0,1);
+  }
+}
+
+.alert-active-pulse {
+  animation: alert-pulse 1.8s ease-in-out infinite;
+}
+
+/* ── Channel urgency highlight strip ── */
+.channel-urgent-strip {
+  border-left: 4px solid #dc2626 !important;
+}
+.channel-issue-strip {
+  border-left: 4px solid #f59e0b !important;
 }

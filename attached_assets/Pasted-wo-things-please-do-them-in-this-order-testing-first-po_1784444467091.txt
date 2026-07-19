@@ -1,0 +1,41 @@
+wo things, please do them in this order — testing first, polish second.
+
+1. Full feature test pass (do this first, before any visual changes)
+
+Please go through and actually test each of these end-to-end, and report back pass/fail for each rather than assuming:
+
+
+Login: a valid roster email logs in successfully
+Login: a non-roster @sap.com email is rejected with a clear message
+Login: a non-@sap.com email is rejected with a clear message
+Login: session persists after refreshing the page (doesn't log me out)
+Logout button actually clears the session
+A volunteer can post a message in their own workstream channel
+A volunteer sees "read-only" (no compose box, or a disabled one) in a channel that isn't theirs
+An admin can post in every channel
+An admin can see the /admin dashboard with all channels listed
+Urgency tags (🟢/🟡/🔴) can be set on a message and display correctly
+A message can be marked "Resolved" and reflects that visually
+Photo upload on a message works
+The 🚨 Alert Admins button creates an alert that appears in the Active Alerts section on the admin dashboard
+An admin can Acknowledge and Resolve an active alert
+Broadcast box on admin dashboard sends a message to the All Hands/Announcements channel
+Real-time updates: a message sent from one browser/session appears live in another without refreshing
+Reconnect behavior: if the connection drops briefly, the app recovers gracefully (shows a reconnecting indicator, doesn't crash)
+Re-uploading the roster CSV fully replaces old data (no leftover old entries)
+
+
+Please list each of these with a clear pass/fail and fix anything that fails before moving to part 2.
+
+2. Visual polish (only after part 1 is fully passing)
+
+Once everything above works, please improve the visual design:
+
+
+Add a dark mode toggle (should be easy to find, e.g. in a settings icon or top corner)
+Use a more vibrant, modern color scheme for urgency tags and channel highlights — but keep it clean and readable, not distracting, since people will be scanning this quickly during a live event
+Make the Active Alerts banner on the admin dashboard visually impossible to miss (strong color, maybe a subtle animation/pulse) since that's the most critical element on that screen
+Keep everything mobile-friendly — check that dark mode and any new styling still look good on a phone screen, not just desktop
+
+
+Please don't let visual polish introduce new bugs into the working features from part 1 — if you're unsure whether a styling change risks breaking something functional, flag it to me rather than assuming it's safe.

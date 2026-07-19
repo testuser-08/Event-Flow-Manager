@@ -7,8 +7,9 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link } from 'wouter';
-import { ShieldAlert, AlertTriangle, AlertCircle, Check, Send, Users } from 'lucide-react';
+import { ShieldAlert, AlertTriangle, AlertCircle, Check, Send, Users, WifiOff, Wifi } from 'lucide-react';
 import { format } from 'date-fns';
+import type { ConnectionStatus } from '@/hooks/use-messages';
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
 
@@ -41,10 +42,12 @@ export default function AdminDashboard() {
 
   const [broadcastText, setBroadcastText] = useState('');
   const [isBroadcasting, setIsBroadcasting] = useState(false);
+  const [realtimeStatus, setRealtimeStatus] = useState<ConnectionStatus>('connecting');
   const audioCtxRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
     let mounted = true;
+    let hasConnectedOnce = false;
     const channel = supabase.channel('alerts-feed')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'alerts' }, (payload) => {
         if (!mounted) return;
@@ -55,7 +58,17 @@ export default function AdminDashboard() {
         if (!mounted) return;
         queryClient.invalidateQueries({ queryKey: getGetChannelsSummaryQueryKey() });
       })
-      .subscribe();
+      .subscribe((status) => {
+        if (!mounted) return;
+        if (status === 'SUBSCRIBED') {
+          hasConnectedOnce = true;
+          setRealtimeStatus('connected');
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          setRealtimeStatus(hasConnectedOnce ? 'reconnecting' : 'disconnected');
+        } else {
+          setRealtimeStatus(hasConnectedOnce ? 'reconnecting' : 'connecting');
+        }
+      });
     return () => { mounted = false; supabase.removeChannel(channel); };
   }, [queryClient]);
 
@@ -92,7 +105,6 @@ export default function AdminDashboard() {
     e.preventDefault();
     if (!broadcastText.trim() || !volunteer || !channels) return;
 
-    // Find first channel to broadcast to (or a designated one)
     const target = channels[0];
     if (!target) return;
 
@@ -112,6 +124,8 @@ export default function AdminDashboard() {
   };
 
   const activeAlerts = alerts?.filter(a => a.status === 'active' || a.status === 'acknowledged') || [];
+  const hasActiveAlerts = activeAlerts.length > 0;
+
   const sortedChannels = channels ? [...channels].sort((a, b) => {
     if (a.open_urgents !== b.open_urgents) return b.open_urgents - a.open_urgents;
     if (a.open_issues !== b.open_issues) return b.open_issues - a.open_issues;
@@ -132,48 +146,88 @@ export default function AdminDashboard() {
         </Link>
       </div>
 
+      {/* Reconnect banner */}
+      {(realtimeStatus === 'reconnecting' || realtimeStatus === 'disconnected') && (
+        <div className="bg-amber-500 text-black text-xs font-bold font-mono uppercase tracking-wider px-3 py-1.5 flex items-center gap-2 shrink-0 animate-pulse">
+          <WifiOff className="w-3 h-3" /> Reconnecting to live alerts…
+        </div>
+      )}
+      {realtimeStatus === 'connecting' && (
+        <div className="bg-muted text-muted-foreground text-xs font-mono px-3 py-1 flex items-center gap-2 shrink-0">
+          <Wifi className="w-3 h-3" /> Connecting…
+        </div>
+      )}
+
       <div className="p-4 space-y-6">
-        {/* Active Alerts */}
+        {/* ── Active Alerts ── */}
         <section>
-          <h2 className="font-mono text-xs font-bold uppercase text-muted-foreground mb-3 flex items-center gap-2">
-            <AlertTriangle className="w-3 h-3 text-red-600" /> Active Alerts
-            {activeAlerts.length > 0 && (
-              <span className="bg-red-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-sm animate-pulse">
-                {activeAlerts.length}
+          {/* Section header — always visible; pulses red when alerts are active */}
+          <div className={`flex items-center gap-2 mb-3 px-3 py-2 -mx-0 rounded-sm ${
+            hasActiveAlerts
+              ? 'bg-red-600 text-white'
+              : 'bg-transparent'
+          }`}>
+            <AlertTriangle className={`w-4 h-4 shrink-0 ${hasActiveAlerts ? 'text-white' : 'text-red-600'}`} />
+            <h2 className={`font-mono text-xs font-black uppercase tracking-wider flex-1 ${hasActiveAlerts ? 'text-white' : 'text-muted-foreground'}`}>
+              Active Alerts
+            </h2>
+            {hasActiveAlerts && (
+              <span className="bg-white text-red-600 text-xs font-black px-2 py-0.5 rounded-sm animate-pulse">
+                {activeAlerts.length} LIVE
               </span>
             )}
-          </h2>
+          </div>
 
           {loadingAlerts ? (
             <div className="font-mono text-sm text-muted-foreground">Loading alerts...</div>
-          ) : activeAlerts.length === 0 ? (
+          ) : !hasActiveAlerts ? (
             <div className="bg-card border-2 border-border p-4 text-sm text-muted-foreground font-mono text-center">
               No active alerts — all clear ✓
             </div>
           ) : (
             <div className="space-y-3">
               {activeAlerts.map((alert) => (
-                <div key={alert.id} className={`border-2 p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
-                  alert.status === 'active' ? 'bg-red-50 dark:bg-red-950 border-red-600' : 'bg-amber-50 dark:bg-amber-950 border-amber-500'
-                }`}>
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div>
-                      <span className="font-mono text-xs font-bold uppercase text-muted-foreground">{alert.channel_name}</span>
-                      <p className="font-bold text-sm mt-0.5">{alert.note}</p>
-                      <p className="text-xs text-muted-foreground font-mono mt-1">
+                <div
+                  key={alert.id}
+                  className={`border-4 p-4 alert-active-pulse ${
+                    alert.status === 'active'
+                      ? 'bg-red-50 dark:bg-red-950 border-red-600'
+                      : 'bg-amber-50 dark:bg-amber-950 border-amber-500'
+                  }`}
+                >
+                  {/* Status strip */}
+                  <div className={`text-[10px] font-black uppercase tracking-widest mb-2 font-mono ${
+                    alert.status === 'active' ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'
+                  }`}>
+                    {alert.status === 'active' ? '🚨 ACTIVE — NEEDS ATTENTION' : '⏳ ACKNOWLEDGED'}
+                  </div>
+
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`text-[10px] font-mono font-bold uppercase px-1.5 py-0.5 border ${
+                          alert.status === 'active'
+                            ? 'bg-red-600 text-white border-red-800'
+                            : 'bg-amber-500 text-black border-amber-700'
+                        }`}>
+                          {alert.channel_name}
+                        </span>
+                      </div>
+                      <p className="font-bold text-base leading-snug mt-1">{alert.note}</p>
+                      <p className="text-xs text-muted-foreground font-mono mt-1.5">
                         {alert.sender_name} • {format(new Date(alert.created_at), 'HH:mm')}
                         {alert.status === 'acknowledged' && alert.acknowledged_by_name && (
                           <> • Ack'd by {alert.acknowledged_by_name}</>
                         )}
                       </p>
                     </div>
-                    <div className="flex gap-2 shrink-0">
+                    <div className="flex flex-col gap-2 shrink-0">
                       {alert.status === 'active' && (
-                        <Button size="sm" variant="outline" className="border-2 rounded-none font-bold uppercase text-xs h-8" onClick={() => handleAcknowledge(alert.id)}>
+                        <Button size="sm" variant="outline" className="border-2 rounded-none font-bold uppercase text-xs h-8 whitespace-nowrap" onClick={() => handleAcknowledge(alert.id)}>
                           <Check className="w-3 h-3 mr-1" /> Ack
                         </Button>
                       )}
-                      <Button size="sm" variant="default" className="border-2 rounded-none font-bold uppercase text-xs h-8" onClick={() => handleResolveAlert(alert.id)}>
+                      <Button size="sm" variant="default" className="border-2 rounded-none font-bold uppercase text-xs h-8 whitespace-nowrap bg-emerald-600 hover:bg-emerald-700 border-emerald-800" onClick={() => handleResolveAlert(alert.id)}>
                         <Check className="w-3 h-3 mr-1" /> Resolve
                       </Button>
                     </div>
@@ -184,7 +238,7 @@ export default function AdminDashboard() {
           )}
         </section>
 
-        {/* Channel Overview */}
+        {/* ── Channel Overview ── */}
         <section>
           <h2 className="font-mono text-xs font-bold uppercase text-muted-foreground mb-3">Channel Overview</h2>
           {loadingChannels ? (
@@ -193,21 +247,23 @@ export default function AdminDashboard() {
             <div className="space-y-2">
               {sortedChannels.map((ch) => (
                 <Link key={ch.id} href={`/channels/${ch.slug}`}>
-                  <div className="bg-card border-2 border-border p-3 flex items-center justify-between hover:bg-muted transition-colors cursor-pointer">
+                  <div className={`bg-card border-2 p-3 flex items-center justify-between hover:bg-muted transition-colors cursor-pointer ${
+                    ch.open_urgents > 0 ? 'border-red-500 border-l-4' : ch.open_issues > 0 ? 'border-amber-400 border-l-4' : 'border-border'
+                  }`}>
                     <span className="font-bold text-sm uppercase">{ch.name}</span>
                     <div className="flex items-center gap-2">
                       {ch.open_urgents > 0 && (
-                        <span className="bg-red-600 text-white text-xs font-bold px-1.5 py-0.5 flex items-center gap-1 border border-red-800">
+                        <span className="bg-red-600 text-white text-xs font-bold px-2 py-0.5 flex items-center gap-1 border border-red-800 rounded-sm">
                           <AlertTriangle className="w-3 h-3" />{ch.open_urgents}
                         </span>
                       )}
                       {ch.open_issues > 0 && (
-                        <span className="bg-amber-500 text-black text-xs font-bold px-1.5 py-0.5 flex items-center gap-1 border border-amber-700">
+                        <span className="bg-amber-500 text-black text-xs font-bold px-2 py-0.5 flex items-center gap-1 border border-amber-700 rounded-sm">
                           <AlertCircle className="w-3 h-3" />{ch.open_issues}
                         </span>
                       )}
                       {ch.open_urgents === 0 && ch.open_issues === 0 && (
-                        <span className="text-emerald-600 text-xs font-mono">All clear</span>
+                        <span className="text-emerald-600 dark:text-emerald-400 text-xs font-mono font-bold">✓ Clear</span>
                       )}
                     </div>
                   </div>
@@ -217,7 +273,7 @@ export default function AdminDashboard() {
           )}
         </section>
 
-        {/* Broadcast */}
+        {/* ── Broadcast ── */}
         <section>
           <h2 className="font-mono text-xs font-bold uppercase text-muted-foreground mb-3">Broadcast Message</h2>
           <form onSubmit={handleBroadcast} className="flex gap-2">

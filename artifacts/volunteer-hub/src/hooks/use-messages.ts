@@ -15,14 +15,18 @@ export type SupabaseMessage = {
   created_at: string;
 };
 
+export type ConnectionStatus = 'connecting' | 'connected' | 'reconnecting' | 'disconnected';
+
 export function useMessages(channelId?: string) {
   const [messages, setMessages] = useState<SupabaseMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connecting');
 
   useEffect(() => {
     if (!channelId) return;
 
     let mounted = true;
+    let hasConnectedOnce = false;
 
     const fetchMessages = async () => {
       setLoading(true);
@@ -59,7 +63,19 @@ export function useMessages(channelId?: string) {
           );
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (!mounted) return;
+        if (status === 'SUBSCRIBED') {
+          hasConnectedOnce = true;
+          setConnectionStatus('connected');
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          setConnectionStatus(hasConnectedOnce ? 'reconnecting' : 'disconnected');
+        } else if (status === 'CLOSED') {
+          setConnectionStatus(hasConnectedOnce ? 'reconnecting' : 'disconnected');
+        } else {
+          setConnectionStatus(hasConnectedOnce ? 'reconnecting' : 'connecting');
+        }
+      });
 
     return () => {
       mounted = false;
@@ -67,5 +83,5 @@ export function useMessages(channelId?: string) {
     };
   }, [channelId]);
 
-  return { messages, loading };
+  return { messages, loading, connectionStatus };
 }

@@ -5,7 +5,7 @@ import { useGetChannelsSummary } from '@workspace/api-client-react';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Send, AlertTriangle, AlertCircle, Info, Image as ImageIcon, Check, ShieldAlert, Lock } from 'lucide-react';
+import { ArrowLeft, Send, AlertTriangle, AlertCircle, Info, Image as ImageIcon, Check, ShieldAlert, Lock, WifiOff, Wifi } from 'lucide-react';
 import { Link } from 'wouter';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { format } from 'date-fns';
@@ -59,7 +59,7 @@ export default function ChannelDetail({ slug }: { slug: string }) {
   const { volunteer } = useAuth();
   const { data: channels } = useGetChannelsSummary();
   const channel = channels?.find((c) => c.slug === slug);
-  const { messages, loading } = useMessages(channel?.id);
+  const { messages, loading, connectionStatus } = useMessages(channel?.id);
 
   const [content, setContent] = useState('');
   const [urgency, setUrgency] = useState<'info' | 'issue' | 'urgent'>('info');
@@ -181,6 +181,18 @@ export default function ChannelDetail({ slug }: { slug: string }) {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Reconnect banner */}
+      {(connectionStatus === 'reconnecting' || connectionStatus === 'disconnected') && (
+        <div className="bg-amber-500 text-black text-xs font-bold font-mono uppercase tracking-wider px-3 py-1.5 flex items-center gap-2 shrink-0 animate-pulse">
+          <WifiOff className="w-3 h-3" /> Reconnecting to live updates…
+        </div>
+      )}
+      {connectionStatus === 'connecting' && (
+        <div className="bg-muted text-muted-foreground text-xs font-mono px-3 py-1 flex items-center gap-2 shrink-0">
+          <Wifi className="w-3 h-3" /> Connecting…
+        </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
