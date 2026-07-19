@@ -1,0 +1,20 @@
+Two things, please handle both:
+
+1. Fix the branch push issue
+
+The Git panel is trying to push as branch 'subrepl-8dr384w2/main' instead of a clean 'main' branch, even though main is selected. Please make sure all the latest changes are merged into the actual main branch, and push that directly to the GitHub remote as 'main' — not as a subrepl branch. Confirm once GitHub shows a clean main branch with all the files.
+
+2. Full pre-push verification pass
+
+Before (or right after) pushing, please actually verify the codebase is complete and will still work correctly once it's on GitHub and later deployed to Vercel — not just that it runs here in Replit. Specifically check:
+
+
+All source files are actually committed (nothing left un-committed or only existing in a subrepl branch that won't make it to main)
+No file that the app depends on is accidentally excluded by .gitignore (double check .gitignore only excludes things it should — like .env, node_modules — and isn't accidentally excluding real source files, config files, or the attached_assets images used in the Agenda/Breakout screens)
+The .env.example file lists every environment variable the app actually needs to run, with no typos in variable names (these must match exactly what the code references)
+package.json includes every dependency actually used in the code (no "works on Replit because it's already installed globally" dependency that would be missing on a fresh Vercel build)
+The build command actually succeeds from a clean state — if possible, simulate this by clearing the build cache and running the full build command fresh, not relying on Replit's already-running dev server as proof it works
+The vercel.json config and the serverless API adapter (api/handler.ts) are correct and consistent with the current state of the Express app — confirm nothing changed in the backend since those were written that would make them out of date
+
+
+Please report back clearly: confirm each of the above passed, or tell me specifically what you fixed if something was wrong. I want a real "this will work on a fresh deploy" confirmation, not just "it works here."
