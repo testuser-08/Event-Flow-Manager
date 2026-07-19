@@ -16,18 +16,22 @@ type AuthContextType = {
   volunteer: VolunteerSession | null;
   isAdmin: boolean;
   isLoading: boolean;
+  showWelcome: boolean;
   login: (email: string) => Promise<{ error?: string }>;
   signOut: () => void;
   updateAvatar: (url: string) => void;
+  dismissWelcome: () => void;
 };
 
 const AuthContext = createContext<AuthContextType>({
   volunteer: null,
   isAdmin: false,
   isLoading: true,
+  showWelcome: false,
   login: async () => ({}),
   signOut: () => {},
   updateAvatar: () => {},
+  dismissWelcome: () => {},
 });
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -44,6 +48,7 @@ async function apiFetch(path: string, opts?: RequestInit) {
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [volunteer, setVolunteer] = useState<VolunteerSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
     setAuthTokenGetter(() => localStorage.getItem(TOKEN_KEY));
@@ -70,20 +75,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!ok) return { error: data?.error ?? 'Login failed. Please try again.' };
     localStorage.setItem(TOKEN_KEY, data.token);
     setVolunteer(data.volunteer as VolunteerSession);
+    // Show the welcome modal only on a volunteer's very first login
+    if (!data.volunteer?.hasSeenWelcome) setShowWelcome(true);
     return {};
   }, []);
 
   const signOut = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY);
     setVolunteer(null);
+    setShowWelcome(false);
   }, []);
 
   const updateAvatar = useCallback((url: string) => {
     setVolunteer((prev) => prev ? { ...prev, avatarUrl: url } : prev);
   }, []);
 
+  const dismissWelcome = useCallback(() => {
+    setShowWelcome(false);
+    // Persist the flag to the database so it never shows again on any device
+    apiFetch('/api/auth/welcome-seen', { method: 'POST' }).catch(() => {/* best-effort */});
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ volunteer, isAdmin: volunteer?.isAdmin ?? false, isLoading, login, signOut, updateAvatar }}>
+    <AuthContext.Provider value={{ volunteer, isAdmin: volunteer?.isAdmin ?? false, isLoading, showWelcome, login, signOut, updateAvatar, dismissWelcome }}>
       {children}
     </AuthContext.Provider>
   );

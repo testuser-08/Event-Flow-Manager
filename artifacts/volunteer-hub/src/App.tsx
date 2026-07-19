@@ -12,6 +12,7 @@ import AdminRoster from '@/pages/admin/roster';
 import Agenda from '@/pages/agenda';
 import Breakouts from '@/pages/breakouts';
 import Header from '@/components/shared/Header';
+import WelcomeModal from '@/components/WelcomeModal';
 import { useSetupDatabase } from '@workspace/api-client-react';
 import { useEffect } from 'react';
 
@@ -49,6 +50,7 @@ function Router() {
   return (
     <div className="min-h-[100dvh] flex flex-col w-full max-w-md mx-auto sm:max-w-xl md:max-w-2xl bg-background border-x-2 border-border shadow-2xl relative">
       <SetupTrigger />
+      <WelcomeModal />
       {volunteer && <Header />}
       <main className="flex-1 flex flex-col relative overflow-hidden">
         <Switch>

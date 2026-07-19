@@ -37,7 +37,7 @@ router.post("/auth/login", loginLimiter, async (req, res) => {
     // Fetch all rows for this email (could be multiple workstreams)
     const { data, error } = await supabaseAdmin
       .from("volunteers")
-      .select("id, name, email, workstreams, is_admin")
+      .select("id, name, email, workstreams, is_admin, has_seen_welcome")
       .eq("email", email)
       .maybeSingle();
 
@@ -83,11 +83,33 @@ router.post("/auth/login", loginLimiter, async (req, res) => {
         workstreams: data.workstreams ?? [],
         isAdmin: data.is_admin ?? false,
         avatarUrl,
+        hasSeenWelcome: data.has_seen_welcome ?? false,
       },
     });
   } catch (err) {
     logger.error({ err }, "auth/login unexpected error");
     res.status(500).json({ error: "Login failed due to a server error. Please try again." });
+  }
+});
+
+// POST /api/auth/welcome-seen — mark the volunteer's first-login modal as dismissed
+router.post("/auth/welcome-seen", requireAuth, async (req, res) => {
+  const v = req.volunteer!;
+  try {
+    const { error } = await supabaseAdmin
+      .from("volunteers")
+      .update({ has_seen_welcome: true })
+      .eq("id", v.volunteerId);
+
+    if (error) {
+      logger.error({ err: error }, "welcome-seen update error");
+      res.status(500).json({ error: error.message });
+      return;
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    logger.error({ err }, "welcome-seen unexpected error");
+    res.status(500).json({ error: "Server error." });
   }
 });
 
