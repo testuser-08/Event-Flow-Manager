@@ -11,6 +11,7 @@ import { ShieldAlert, AlertTriangle, AlertCircle, Check, Send, Users, WifiOff, W
 import { format } from 'date-fns';
 import type { ConnectionStatus } from '@/hooks/use-messages';
 import { toast } from 'sonner';
+import ScheduleEditor from './schedule-editor';
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
 
@@ -303,6 +304,9 @@ export default function AdminDashboard() {
             </Button>
           </form>
         </section>
+
+        {/* ── Event Schedule ── */}
+        <ScheduleEditor />
       </div>
     </div>
   );

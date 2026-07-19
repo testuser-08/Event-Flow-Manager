@@ -8,6 +8,8 @@ import authRouter from "./auth.js";
 import messagesRouter from "./messages.js";
 import alertsWriteRouter from "./alerts-write.js";
 import profileRouter from "./profile.js";
+import agendaRouter from "./agenda.js";
+import breakoutsRouter from "./breakouts.js";
 
 const router: IRouter = Router();
 
@@ -20,5 +22,7 @@ router.use(adminRosterRouter);
 router.use(channelsSummaryRouter);
 router.use(alertsActiveRouter);
 router.use(profileRouter);
+router.use(agendaRouter);
+router.use(breakoutsRouter);
 
 export default router;

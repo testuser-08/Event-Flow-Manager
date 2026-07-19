@@ -6,8 +6,15 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './agendaItem';
+export * from './agendaItemWrite';
 export * from './alert';
 export * from './alertStatus';
+export * from './breakoutSessionRow';
+export * from './breakoutSessionWrite';
+export * from './breakoutTrack';
+export * from './breakoutTrackRow';
+export * from './breakoutTrackWrite';
 export * from './channelSummary';
 export * from './deleteResult';
 export * from './healthStatus';

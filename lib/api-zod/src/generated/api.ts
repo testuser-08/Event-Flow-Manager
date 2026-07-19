@@ -115,3 +115,252 @@ export const GetActiveAlertsResponseItem = zod.object({
 export const GetActiveAlertsResponse = zod.array(GetActiveAlertsResponseItem)
 
 
+/**
+ * @summary List all agenda items ordered by sort_order
+ */
+export const GetAgendaResponseItem = zod.object({
+  "id": zod.string(),
+  "sort_order": zod.number(),
+  "start_time": zod.string(),
+  "end_time": zod.string(),
+  "label": zod.string(),
+  "title": zod.string(),
+  "location": zod.string(),
+  "is_breakout": zod.boolean(),
+  "created_at": zod.coerce.date()
+})
+export const GetAgendaResponse = zod.array(GetAgendaResponseItem)
+
+
+/**
+ * @summary Create a new agenda item (admin only)
+ */
+export const CreateAgendaItemBody = zod.object({
+  "sort_order": zod.number().optional(),
+  "start_time": zod.string().optional(),
+  "end_time": zod.string().optional(),
+  "label": zod.string().optional(),
+  "title": zod.string().optional(),
+  "location": zod.string().optional(),
+  "is_breakout": zod.boolean().optional()
+})
+
+export const CreateAgendaItemResponse = zod.object({
+  "id": zod.string(),
+  "sort_order": zod.number(),
+  "start_time": zod.string(),
+  "end_time": zod.string(),
+  "label": zod.string(),
+  "title": zod.string(),
+  "location": zod.string(),
+  "is_breakout": zod.boolean(),
+  "created_at": zod.coerce.date()
+})
+
+
+/**
+ * @summary Update an agenda item (admin only)
+ */
+export const UpdateAgendaItemParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const UpdateAgendaItemBody = zod.object({
+  "sort_order": zod.number().optional(),
+  "start_time": zod.string().optional(),
+  "end_time": zod.string().optional(),
+  "label": zod.string().optional(),
+  "title": zod.string().optional(),
+  "location": zod.string().optional(),
+  "is_breakout": zod.boolean().optional()
+})
+
+export const UpdateAgendaItemResponse = zod.object({
+  "id": zod.string(),
+  "sort_order": zod.number(),
+  "start_time": zod.string(),
+  "end_time": zod.string(),
+  "label": zod.string(),
+  "title": zod.string(),
+  "location": zod.string(),
+  "is_breakout": zod.boolean(),
+  "created_at": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete an agenda item (admin only)
+ */
+export const DeleteAgendaItemParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const DeleteAgendaItemResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary List all breakout tracks with their sessions
+ */
+export const GetBreakoutsResponseItem = zod.object({
+  "id": zod.string(),
+  "slug": zod.string(),
+  "sort_order": zod.number(),
+  "name": zod.string(),
+  "location": zod.string(),
+  "color": zod.string(),
+  "text_color": zod.string(),
+  "border_color": zod.string(),
+  "created_at": zod.coerce.date(),
+  "sessions": zod.array(zod.object({
+  "id": zod.string(),
+  "track_id": zod.string(),
+  "sort_order": zod.number(),
+  "zone": zod.string().nullish(),
+  "title": zod.string(),
+  "start_time": zod.string(),
+  "end_time": zod.string(),
+  "time_label": zod.string(),
+  "created_at": zod.coerce.date()
+}))
+})
+export const GetBreakoutsResponse = zod.array(GetBreakoutsResponseItem)
+
+
+/**
+ * @summary Create a breakout track (admin only)
+ */
+export const CreateBreakoutTrackBody = zod.object({
+  "slug": zod.string().optional(),
+  "sort_order": zod.number().optional(),
+  "name": zod.string().optional(),
+  "location": zod.string().optional(),
+  "color": zod.string().optional(),
+  "text_color": zod.string().optional(),
+  "border_color": zod.string().optional()
+})
+
+export const CreateBreakoutTrackResponse = zod.object({
+  "id": zod.string(),
+  "slug": zod.string(),
+  "sort_order": zod.number(),
+  "name": zod.string(),
+  "location": zod.string(),
+  "color": zod.string(),
+  "text_color": zod.string(),
+  "border_color": zod.string(),
+  "created_at": zod.coerce.date()
+})
+
+
+/**
+ * @summary Update a breakout track (admin only)
+ */
+export const UpdateBreakoutTrackParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const UpdateBreakoutTrackBody = zod.object({
+  "slug": zod.string().optional(),
+  "sort_order": zod.number().optional(),
+  "name": zod.string().optional(),
+  "location": zod.string().optional(),
+  "color": zod.string().optional(),
+  "text_color": zod.string().optional(),
+  "border_color": zod.string().optional()
+})
+
+export const UpdateBreakoutTrackResponse = zod.object({
+  "id": zod.string(),
+  "slug": zod.string(),
+  "sort_order": zod.number(),
+  "name": zod.string(),
+  "location": zod.string(),
+  "color": zod.string(),
+  "text_color": zod.string(),
+  "border_color": zod.string(),
+  "created_at": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete a breakout track and its sessions (admin only)
+ */
+export const DeleteBreakoutTrackParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const DeleteBreakoutTrackResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary Create a breakout session (admin only)
+ */
+export const CreateBreakoutSessionBody = zod.object({
+  "track_id": zod.string().optional(),
+  "sort_order": zod.number().optional(),
+  "zone": zod.string().nullish(),
+  "title": zod.string().optional(),
+  "start_time": zod.string().optional(),
+  "end_time": zod.string().optional(),
+  "time_label": zod.string().optional()
+})
+
+export const CreateBreakoutSessionResponse = zod.object({
+  "id": zod.string(),
+  "track_id": zod.string(),
+  "sort_order": zod.number(),
+  "zone": zod.string().nullish(),
+  "title": zod.string(),
+  "start_time": zod.string(),
+  "end_time": zod.string(),
+  "time_label": zod.string(),
+  "created_at": zod.coerce.date()
+})
+
+
+/**
+ * @summary Update a breakout session (admin only)
+ */
+export const UpdateBreakoutSessionParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const UpdateBreakoutSessionBody = zod.object({
+  "track_id": zod.string().optional(),
+  "sort_order": zod.number().optional(),
+  "zone": zod.string().nullish(),
+  "title": zod.string().optional(),
+  "start_time": zod.string().optional(),
+  "end_time": zod.string().optional(),
+  "time_label": zod.string().optional()
+})
+
+export const UpdateBreakoutSessionResponse = zod.object({
+  "id": zod.string(),
+  "track_id": zod.string(),
+  "sort_order": zod.number(),
+  "zone": zod.string().nullish(),
+  "title": zod.string(),
+  "start_time": zod.string(),
+  "end_time": zod.string(),
+  "time_label": zod.string(),
+  "created_at": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete a breakout session (admin only)
+ */
+export const DeleteBreakoutSessionParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const DeleteBreakoutSessionResponse = zod.object({
+  "success": zod.boolean()
+})
+
+

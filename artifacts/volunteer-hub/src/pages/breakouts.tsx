@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Search, Clock, Bookmark, BookmarkCheck, Filter, X, MapPin } from 'lucide-react';
-import { BREAKOUT_TRACKS, BreakoutSession, BreakoutTrack, getItemStatus, toMinutes } from '@/data/event-data';
+import { useGetBreakouts } from '@workspace/api-client-react';
+import type { BreakoutTrack, BreakoutSessionRow } from '@workspace/api-client-react';
 
 const BOOKMARK_KEY = 'vhub_bookmarks';
 
@@ -27,6 +28,24 @@ function trackHex(color: string): string {
   return BG_TO_HEX[color] ?? '#2563eb';
 }
 
+// ── Time helpers ─────────────────────────────────────────────────────────────
+function toMinutes(hhmm: string): number {
+  const [h, m] = hhmm.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function getItemStatus(
+  startTime: string,
+  endTime: string,
+  nowMinutes: number
+): 'current' | 'next' | 'past' | 'future' {
+  const start = toMinutes(startTime);
+  const end = toMinutes(endTime);
+  if (nowMinutes >= start && nowMinutes < end) return 'current';
+  if (nowMinutes < start) return 'future';
+  return 'past';
+}
+
 function getNowMinutes(): number {
   const now = new Date();
   return now.getHours() * 60 + now.getMinutes();
@@ -47,18 +66,24 @@ function saveBookmarks(set: Set<string>) {
   } catch {}
 }
 
-function sessionKey(trackId: string, s: BreakoutSession) {
-  return `${trackId}|${s.startTime}|${s.title}`;
+function sessionKey(trackId: string, s: BreakoutSessionRow) {
+  return `${trackId}|${s.start_time}|${s.title}`;
 }
 
-function groupBySlot(sessions: BreakoutSession[]): { timeLabel: string; startTime: string; endTime: string; items: BreakoutSession[] }[] {
-  const map = new Map<string, { timeLabel: string; startTime: string; endTime: string; items: BreakoutSession[] }>();
+// Group sessions within a track by time_label
+function groupBySlot(sessions: BreakoutSessionRow[]): {
+  timeLabel: string;
+  startTime: string;
+  endTime: string;
+  items: BreakoutSessionRow[];
+}[] {
+  const map = new Map<string, { timeLabel: string; startTime: string; endTime: string; items: BreakoutSessionRow[] }>();
   for (const s of sessions) {
-    const existing = map.get(s.timeLabel);
+    const existing = map.get(s.time_label);
     if (existing) {
       existing.items.push(s);
     } else {
-      map.set(s.timeLabel, { timeLabel: s.timeLabel, startTime: s.startTime, endTime: s.endTime, items: [s] });
+      map.set(s.time_label, { timeLabel: s.time_label, startTime: s.start_time, endTime: s.end_time, items: [s] });
     }
   }
   return [...map.values()].sort((a, b) => toMinutes(a.startTime) - toMinutes(b.startTime));
@@ -71,7 +96,7 @@ const BREAKS = [
 
 interface SearchResult {
   track: BreakoutTrack;
-  session: BreakoutSession;
+  session: BreakoutSessionRow;
 }
 
 function SearchResults({
@@ -98,7 +123,7 @@ function SearchResults({
       {results.map(({ track, session }) => {
         const key = sessionKey(track.id, session);
         const isBookmarked = bookmarks.has(key);
-        const status = getItemStatus(session.startTime, session.endTime, nowMinutes);
+        const status = getItemStatus(session.start_time, session.end_time, nowMinutes);
         const hex = trackHex(track.color);
 
         return (
@@ -140,7 +165,7 @@ function SearchResults({
                 )}
                 <p className="text-sm font-semibold leading-snug">{session.title}</p>
                 <p className="text-[11px] font-mono text-muted-foreground mt-1.5 flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5" />{session.timeLabel}
+                  <Clock className="w-3.5 h-3.5" />{session.time_label}
                 </p>
               </div>
               <button
@@ -265,11 +290,19 @@ function TrackTab({
 }
 
 export default function Breakouts() {
-  const [activeTab, setActiveTab] = useState(BREAKOUT_TRACKS[0].id);
+  const { data: tracks, isLoading, isError } = useGetBreakouts();
+  const [activeTab, setActiveTab] = useState('');
   const [search, setSearch] = useState('');
   const [filterNow, setFilterNow] = useState(false);
   const [bookmarks, setBookmarks] = useState<Set<string>>(loadBookmarks);
   const [nowMinutes, setNowMinutes] = useState(getNowMinutes);
+
+  // Set initial active tab once data loads
+  useEffect(() => {
+    if (tracks && tracks.length > 0 && !activeTab) {
+      setActiveTab(tracks[0].id);
+    }
+  }, [tracks, activeTab]);
 
   useEffect(() => {
     const id = setInterval(() => setNowMinutes(getNowMinutes()), 30_000);
@@ -290,24 +323,24 @@ export default function Breakouts() {
   const isSearching = query.length > 0;
 
   const searchResults: SearchResult[] = useMemo(() => {
-    if (!isSearching) return [];
+    if (!isSearching || !tracks) return [];
     const results: SearchResult[] = [];
-    for (const track of BREAKOUT_TRACKS) {
+    for (const track of tracks) {
       for (const session of track.sessions) {
-        const haystack = [track.name, session.title, session.zone ?? '', session.timeLabel].join(' ').toLowerCase();
+        const haystack = [track.name, session.title, session.zone ?? '', session.time_label].join(' ').toLowerCase();
         if (haystack.includes(query)) {
           results.push({ track, session });
         }
       }
     }
     return results;
-  }, [query]);
+  }, [query, tracks]);
 
   const activeBreaks = BREAKS.filter((b) => getItemStatus(b.start, b.end, nowMinutes) === 'current');
   const upcomingBreaks = BREAKS.filter((b) => getItemStatus(b.start, b.end, nowMinutes) === 'future');
 
-  const activeTrack = BREAKOUT_TRACKS.find((t) => t.id === activeTab) ?? BREAKOUT_TRACKS[0];
-  const activeHex = trackHex(activeTrack.color);
+  const activeTrack = tracks?.find((t) => t.id === activeTab) ?? tracks?.[0];
+  const activeHex = activeTrack ? trackHex(activeTrack.color) : '#2563eb';
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -370,50 +403,64 @@ export default function Breakouts() {
         </div>
 
         {/* Track tabs */}
-        <div className="overflow-x-auto border-t border-border">
-          <div className="flex min-w-max">
-            {BREAKOUT_TRACKS.map((track) => {
-              const isActive = activeTab === track.id;
-              const hex = trackHex(track.color);
-              const nowCount = track.sessions.filter(
-                (s) => getItemStatus(s.startTime, s.endTime, nowMinutes) === 'current'
-              ).length;
+        {tracks && (
+          <div className="overflow-x-auto border-t border-border">
+            <div className="flex min-w-max">
+              {tracks.map((track) => {
+                const isActive = activeTab === track.id;
+                const hex = trackHex(track.color);
+                const nowCount = track.sessions.filter(
+                  (s) => getItemStatus(s.start_time, s.end_time, nowMinutes) === 'current'
+                ).length;
 
-              return (
-                <button
-                  key={track.id}
-                  onClick={() => setActiveTab(track.id)}
-                  style={{ borderBottomColor: isActive ? hex : 'transparent', color: isActive ? hex : undefined }}
-                  className={`relative px-5 py-3 text-xs font-bold uppercase whitespace-nowrap border-b-[3px] transition-all ${
-                    isActive
-                      ? 'bg-background font-black'
-                      : 'text-muted-foreground hover:text-foreground bg-background hover:bg-muted/40'
-                  }`}
-                >
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
-                      style={{ backgroundColor: hex }}
-                    />
-                    <span>{track.name}</span>
-                    {nowCount > 0 && !filterNow && (
+                return (
+                  <button
+                    key={track.id}
+                    onClick={() => setActiveTab(track.id)}
+                    style={{ borderBottomColor: isActive ? hex : 'transparent', color: isActive ? hex : undefined }}
+                    className={`relative px-5 py-3 text-xs font-bold uppercase whitespace-nowrap border-b-[3px] transition-all ${
+                      isActive
+                        ? 'bg-background font-black'
+                        : 'text-muted-foreground hover:text-foreground bg-background hover:bg-muted/40'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5">
                       <span
-                        className="text-white font-mono text-[9px] font-black min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1"
+                        className="inline-block w-2.5 h-2.5 rounded-full shrink-0"
                         style={{ backgroundColor: hex }}
-                      >
-                        {nowCount}
-                      </span>
-                    )}
-                  </div>
-                </button>
-              );
-            })}
+                      />
+                      <span>{track.name}</span>
+                      {nowCount > 0 && !filterNow && (
+                        <span
+                          className="text-white font-mono text-[9px] font-black min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1"
+                          style={{ backgroundColor: hex }}
+                        >
+                          {nowCount}
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
+      {/* ── Loading / error states ──────────────────────────────── */}
+      {isLoading && (
+        <div className="flex-1 flex items-center justify-center text-muted-foreground font-mono text-sm">
+          Loading breakout sessions…
+        </div>
+      )}
+      {isError && (
+        <div className="flex-1 flex items-center justify-center text-destructive font-mono text-sm">
+          Failed to load sessions. Please refresh.
+        </div>
+      )}
+
       {/* ── Content ──────────────────────────────────────────────── */}
-      {isSearching ? (
+      {tracks && isSearching ? (
         <div className="flex-1 overflow-auto">
           <div className="px-5 pt-4 pb-1 font-mono text-xs text-muted-foreground font-bold uppercase">
             {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} for "{query}"
@@ -425,7 +472,7 @@ export default function Breakouts() {
             nowMinutes={nowMinutes}
           />
         </div>
-      ) : (
+      ) : tracks && !isSearching && activeTrack ? (
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="flex-1 overflow-auto">
             {/* ── Sticky location banner ── */}
@@ -450,7 +497,7 @@ export default function Breakouts() {
             />
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

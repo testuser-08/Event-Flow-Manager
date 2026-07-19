@@ -139,6 +139,217 @@ paths:
                 items:
                   $ref: "#/components/schemas/Alert"
 
+  /agenda:
+    get:
+      operationId: getAgenda
+      summary: List all agenda items ordered by sort_order
+      tags: [schedule]
+      responses:
+        "200":
+          description: Agenda items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AgendaItem"
+    post:
+      operationId: createAgendaItem
+      summary: Create a new agenda item (admin only)
+      tags: [schedule]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgendaItemWrite"
+      responses:
+        "201":
+          description: Created agenda item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgendaItem"
+
+  /agenda/{id}:
+    patch:
+      operationId: updateAgendaItem
+      summary: Update an agenda item (admin only)
+      tags: [schedule]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgendaItemWrite"
+      responses:
+        "200":
+          description: Updated agenda item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgendaItem"
+    delete:
+      operationId: deleteAgendaItem
+      summary: Delete an agenda item (admin only)
+      tags: [schedule]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /breakouts:
+    get:
+      operationId: getBreakouts
+      summary: List all breakout tracks with their sessions
+      tags: [schedule]
+      responses:
+        "200":
+          description: Breakout tracks with sessions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BreakoutTrack"
+
+  /breakouts/tracks:
+    post:
+      operationId: createBreakoutTrack
+      summary: Create a breakout track (admin only)
+      tags: [schedule]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BreakoutTrackWrite"
+      responses:
+        "201":
+          description: Created track
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BreakoutTrackRow"
+
+  /breakouts/tracks/{id}:
+    patch:
+      operationId: updateBreakoutTrack
+      summary: Update a breakout track (admin only)
+      tags: [schedule]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BreakoutTrackWrite"
+      responses:
+        "200":
+          description: Updated track
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BreakoutTrackRow"
+    delete:
+      operationId: deleteBreakoutTrack
+      summary: Delete a breakout track and its sessions (admin only)
+      tags: [schedule]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /breakouts/sessions:
+    post:
+      operationId: createBreakoutSession
+      summary: Create a breakout session (admin only)
+      tags: [schedule]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BreakoutSessionWrite"
+      responses:
+        "201":
+          description: Created session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BreakoutSessionRow"
+
+  /breakouts/sessions/{id}:
+    patch:
+      operationId: updateBreakoutSession
+      summary: Update a breakout session (admin only)
+      tags: [schedule]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BreakoutSessionWrite"
+      responses:
+        "200":
+          description: Updated session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BreakoutSessionRow"
+    delete:
+      operationId: deleteBreakoutSession
+      summary: Delete a breakout session (admin only)
+      tags: [schedule]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
 components:
   schemas:
     HealthStatus:
@@ -268,3 +479,159 @@ components:
         created_at:
           type: string
           format: date-time
+
+    AgendaItem:
+      type: object
+      required: [id, sort_order, start_time, end_time, label, title, location, is_breakout, created_at]
+      properties:
+        id:
+          type: string
+        sort_order:
+          type: integer
+        start_time:
+          type: string
+        end_time:
+          type: string
+        label:
+          type: string
+        title:
+          type: string
+        location:
+          type: string
+        is_breakout:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    AgendaItemWrite:
+      type: object
+      properties:
+        sort_order:
+          type: integer
+        start_time:
+          type: string
+        end_time:
+          type: string
+        label:
+          type: string
+        title:
+          type: string
+        location:
+          type: string
+        is_breakout:
+          type: boolean
+
+    BreakoutSessionRow:
+      type: object
+      required: [id, track_id, sort_order, title, start_time, end_time, time_label, created_at]
+      properties:
+        id:
+          type: string
+        track_id:
+          type: string
+        sort_order:
+          type: integer
+        zone:
+          type: string
+          nullable: true
+        title:
+          type: string
+        start_time:
+          type: string
+        end_time:
+          type: string
+        time_label:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    BreakoutSessionWrite:
+      type: object
+      properties:
+        track_id:
+          type: string
+        sort_order:
+          type: integer
+        zone:
+          type: string
+          nullable: true
+        title:
+          type: string
+        start_time:
+          type: string
+        end_time:
+          type: string
+        time_label:
+          type: string
+
+    BreakoutTrackRow:
+      type: object
+      required: [id, slug, sort_order, name, location, color, text_color, border_color, created_at]
+      properties:
+        id:
+          type: string
+        slug:
+          type: string
+        sort_order:
+          type: integer
+        name:
+          type: string
+        location:
+          type: string
+        color:
+          type: string
+        text_color:
+          type: string
+        border_color:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    BreakoutTrackWrite:
+      type: object
+      properties:
+        slug:
+          type: string
+        sort_order:
+          type: integer
+        name:
+          type: string
+        location:
+          type: string
+        color:
+          type: string
+        text_color:
+          type: string
+        border_color:
+          type: string
+
+    BreakoutTrack:
+      type: object
+      required: [id, slug, sort_order, name, location, color, text_color, border_color, created_at, sessions]
+      properties:
+        id:
+          type: string
+        slug:
+          type: string
+        sort_order:
+          type: integer
+        name:
+          type: string
+        location:
+          type: string
+        color:
+          type: string
+        text_color:
+          type: string
+        border_color:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        sessions:
+          type: array
+          items:
+            $ref: "#/components/schemas/BreakoutSessionRow"

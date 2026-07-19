@@ -74,6 +74,85 @@ export interface Alert {
   created_at: string;
 }
 
+export interface AgendaItem {
+  id: string;
+  sort_order: number;
+  start_time: string;
+  end_time: string;
+  label: string;
+  title: string;
+  location: string;
+  is_breakout: boolean;
+  created_at: string;
+}
+
+export interface AgendaItemWrite {
+  sort_order?: number;
+  start_time?: string;
+  end_time?: string;
+  label?: string;
+  title?: string;
+  location?: string;
+  is_breakout?: boolean;
+}
+
+export interface BreakoutSessionRow {
+  id: string;
+  track_id: string;
+  sort_order: number;
+  zone?: string | null;
+  title: string;
+  start_time: string;
+  end_time: string;
+  time_label: string;
+  created_at: string;
+}
+
+export interface BreakoutSessionWrite {
+  track_id?: string;
+  sort_order?: number;
+  zone?: string | null;
+  title?: string;
+  start_time?: string;
+  end_time?: string;
+  time_label?: string;
+}
+
+export interface BreakoutTrackRow {
+  id: string;
+  slug: string;
+  sort_order: number;
+  name: string;
+  location: string;
+  color: string;
+  text_color: string;
+  border_color: string;
+  created_at: string;
+}
+
+export interface BreakoutTrackWrite {
+  slug?: string;
+  sort_order?: number;
+  name?: string;
+  location?: string;
+  color?: string;
+  text_color?: string;
+  border_color?: string;
+}
+
+export interface BreakoutTrack {
+  id: string;
+  slug: string;
+  sort_order: number;
+  name: string;
+  location: string;
+  color: string;
+  text_color: string;
+  border_color: string;
+  created_at: string;
+  sessions: BreakoutSessionRow[];
+}
+
 export type ListVolunteersParams = {
 workstream?: string;
 is_admin?: boolean;

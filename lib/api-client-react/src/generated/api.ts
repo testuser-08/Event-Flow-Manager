@@ -20,7 +20,14 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AgendaItem,
+  AgendaItemWrite,
   Alert,
+  BreakoutSessionRow,
+  BreakoutSessionWrite,
+  BreakoutTrack,
+  BreakoutTrackRow,
+  BreakoutTrackWrite,
   ChannelSummary,
   DeleteResult,
   HealthStatus,
@@ -585,4 +592,800 @@ export function useGetActiveAlerts<TData = Awaited<ReturnType<typeof getActiveAl
 
 
 
+
+export const getGetAgendaUrl = () => {
+
+
+
+
+  return `/api/agenda`
+}
+
+/**
+ * @summary List all agenda items ordered by sort_order
+ */
+export const getAgenda = async ( options?: RequestInit): Promise<AgendaItem[]> => {
+
+  return customFetch<AgendaItem[]>(getGetAgendaUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAgendaQueryKey = () => {
+    return [
+    `/api/agenda`
+    ] as const;
+    }
+
+
+export const getGetAgendaQueryOptions = <TData = Awaited<ReturnType<typeof getAgenda>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAgenda>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAgendaQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAgenda>>> = ({ signal }) => getAgenda({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAgenda>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAgendaQueryResult = NonNullable<Awaited<ReturnType<typeof getAgenda>>>
+export type GetAgendaQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all agenda items ordered by sort_order
+ */
+
+export function useGetAgenda<TData = Awaited<ReturnType<typeof getAgenda>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAgenda>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAgendaQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateAgendaItemUrl = () => {
+
+
+
+
+  return `/api/agenda`
+}
+
+/**
+ * @summary Create a new agenda item (admin only)
+ */
+export const createAgendaItem = async (agendaItemWrite: AgendaItemWrite, options?: RequestInit): Promise<AgendaItem> => {
+
+  return customFetch<AgendaItem>(getCreateAgendaItemUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(agendaItemWrite)
+  }
+);}
+
+
+
+
+
+export const getCreateAgendaItemMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAgendaItem>>, TError,{data: BodyType<AgendaItemWrite>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAgendaItem>>, TError,{data: BodyType<AgendaItemWrite>}, TContext> => {
+
+const mutationKey = ['createAgendaItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAgendaItem>>, {data: BodyType<AgendaItemWrite>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createAgendaItem(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAgendaItemMutationResult = NonNullable<Awaited<ReturnType<typeof createAgendaItem>>>
+    export type CreateAgendaItemMutationBody = BodyType<AgendaItemWrite>
+    export type CreateAgendaItemMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a new agenda item (admin only)
+ */
+export const useCreateAgendaItem = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAgendaItem>>, TError,{data: BodyType<AgendaItemWrite>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createAgendaItem>>,
+        TError,
+        {data: BodyType<AgendaItemWrite>},
+        TContext
+      > => {
+      return useMutation(getCreateAgendaItemMutationOptions(options));
+    }
+
+export const getUpdateAgendaItemUrl = (id: string,) => {
+
+
+
+
+  return `/api/agenda/${id}`
+}
+
+/**
+ * @summary Update an agenda item (admin only)
+ */
+export const updateAgendaItem = async (id: string,
+    agendaItemWrite: AgendaItemWrite, options?: RequestInit): Promise<AgendaItem> => {
+
+  return customFetch<AgendaItem>(getUpdateAgendaItemUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(agendaItemWrite)
+  }
+);}
+
+
+
+
+
+export const getUpdateAgendaItemMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAgendaItem>>, TError,{id: string;data: BodyType<AgendaItemWrite>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAgendaItem>>, TError,{id: string;data: BodyType<AgendaItemWrite>}, TContext> => {
+
+const mutationKey = ['updateAgendaItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAgendaItem>>, {id: string;data: BodyType<AgendaItemWrite>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateAgendaItem(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAgendaItemMutationResult = NonNullable<Awaited<ReturnType<typeof updateAgendaItem>>>
+    export type UpdateAgendaItemMutationBody = BodyType<AgendaItemWrite>
+    export type UpdateAgendaItemMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update an agenda item (admin only)
+ */
+export const useUpdateAgendaItem = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAgendaItem>>, TError,{id: string;data: BodyType<AgendaItemWrite>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateAgendaItem>>,
+        TError,
+        {id: string;data: BodyType<AgendaItemWrite>},
+        TContext
+      > => {
+      return useMutation(getUpdateAgendaItemMutationOptions(options));
+    }
+
+export const getDeleteAgendaItemUrl = (id: string,) => {
+
+
+
+
+  return `/api/agenda/${id}`
+}
+
+/**
+ * @summary Delete an agenda item (admin only)
+ */
+export const deleteAgendaItem = async (id: string, options?: RequestInit): Promise<DeleteResult> => {
+
+  return customFetch<DeleteResult>(getDeleteAgendaItemUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteAgendaItemMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAgendaItem>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteAgendaItem>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['deleteAgendaItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAgendaItem>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteAgendaItem(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteAgendaItemMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAgendaItem>>>
+
+    export type DeleteAgendaItemMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete an agenda item (admin only)
+ */
+export const useDeleteAgendaItem = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAgendaItem>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteAgendaItem>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getDeleteAgendaItemMutationOptions(options));
+    }
+
+export const getGetBreakoutsUrl = () => {
+
+
+
+
+  return `/api/breakouts`
+}
+
+/**
+ * @summary List all breakout tracks with their sessions
+ */
+export const getBreakouts = async ( options?: RequestInit): Promise<BreakoutTrack[]> => {
+
+  return customFetch<BreakoutTrack[]>(getGetBreakoutsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBreakoutsQueryKey = () => {
+    return [
+    `/api/breakouts`
+    ] as const;
+    }
+
+
+export const getGetBreakoutsQueryOptions = <TData = Awaited<ReturnType<typeof getBreakouts>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBreakouts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBreakoutsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBreakouts>>> = ({ signal }) => getBreakouts({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBreakouts>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetBreakoutsQueryResult = NonNullable<Awaited<ReturnType<typeof getBreakouts>>>
+export type GetBreakoutsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all breakout tracks with their sessions
+ */
+
+export function useGetBreakouts<TData = Awaited<ReturnType<typeof getBreakouts>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getBreakouts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetBreakoutsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreateBreakoutTrackUrl = () => {
+
+
+
+
+  return `/api/breakouts/tracks`
+}
+
+/**
+ * @summary Create a breakout track (admin only)
+ */
+export const createBreakoutTrack = async (breakoutTrackWrite: BreakoutTrackWrite, options?: RequestInit): Promise<BreakoutTrackRow> => {
+
+  return customFetch<BreakoutTrackRow>(getCreateBreakoutTrackUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(breakoutTrackWrite)
+  }
+);}
+
+
+
+
+
+export const getCreateBreakoutTrackMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createBreakoutTrack>>, TError,{data: BodyType<BreakoutTrackWrite>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createBreakoutTrack>>, TError,{data: BodyType<BreakoutTrackWrite>}, TContext> => {
+
+const mutationKey = ['createBreakoutTrack'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createBreakoutTrack>>, {data: BodyType<BreakoutTrackWrite>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createBreakoutTrack(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateBreakoutTrackMutationResult = NonNullable<Awaited<ReturnType<typeof createBreakoutTrack>>>
+    export type CreateBreakoutTrackMutationBody = BodyType<BreakoutTrackWrite>
+    export type CreateBreakoutTrackMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a breakout track (admin only)
+ */
+export const useCreateBreakoutTrack = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createBreakoutTrack>>, TError,{data: BodyType<BreakoutTrackWrite>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createBreakoutTrack>>,
+        TError,
+        {data: BodyType<BreakoutTrackWrite>},
+        TContext
+      > => {
+      return useMutation(getCreateBreakoutTrackMutationOptions(options));
+    }
+
+export const getUpdateBreakoutTrackUrl = (id: string,) => {
+
+
+
+
+  return `/api/breakouts/tracks/${id}`
+}
+
+/**
+ * @summary Update a breakout track (admin only)
+ */
+export const updateBreakoutTrack = async (id: string,
+    breakoutTrackWrite: BreakoutTrackWrite, options?: RequestInit): Promise<BreakoutTrackRow> => {
+
+  return customFetch<BreakoutTrackRow>(getUpdateBreakoutTrackUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(breakoutTrackWrite)
+  }
+);}
+
+
+
+
+
+export const getUpdateBreakoutTrackMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateBreakoutTrack>>, TError,{id: string;data: BodyType<BreakoutTrackWrite>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateBreakoutTrack>>, TError,{id: string;data: BodyType<BreakoutTrackWrite>}, TContext> => {
+
+const mutationKey = ['updateBreakoutTrack'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateBreakoutTrack>>, {id: string;data: BodyType<BreakoutTrackWrite>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateBreakoutTrack(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateBreakoutTrackMutationResult = NonNullable<Awaited<ReturnType<typeof updateBreakoutTrack>>>
+    export type UpdateBreakoutTrackMutationBody = BodyType<BreakoutTrackWrite>
+    export type UpdateBreakoutTrackMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update a breakout track (admin only)
+ */
+export const useUpdateBreakoutTrack = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateBreakoutTrack>>, TError,{id: string;data: BodyType<BreakoutTrackWrite>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateBreakoutTrack>>,
+        TError,
+        {id: string;data: BodyType<BreakoutTrackWrite>},
+        TContext
+      > => {
+      return useMutation(getUpdateBreakoutTrackMutationOptions(options));
+    }
+
+export const getDeleteBreakoutTrackUrl = (id: string,) => {
+
+
+
+
+  return `/api/breakouts/tracks/${id}`
+}
+
+/**
+ * @summary Delete a breakout track and its sessions (admin only)
+ */
+export const deleteBreakoutTrack = async (id: string, options?: RequestInit): Promise<DeleteResult> => {
+
+  return customFetch<DeleteResult>(getDeleteBreakoutTrackUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteBreakoutTrackMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteBreakoutTrack>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteBreakoutTrack>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['deleteBreakoutTrack'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteBreakoutTrack>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteBreakoutTrack(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteBreakoutTrackMutationResult = NonNullable<Awaited<ReturnType<typeof deleteBreakoutTrack>>>
+
+    export type DeleteBreakoutTrackMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a breakout track and its sessions (admin only)
+ */
+export const useDeleteBreakoutTrack = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteBreakoutTrack>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteBreakoutTrack>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getDeleteBreakoutTrackMutationOptions(options));
+    }
+
+export const getCreateBreakoutSessionUrl = () => {
+
+
+
+
+  return `/api/breakouts/sessions`
+}
+
+/**
+ * @summary Create a breakout session (admin only)
+ */
+export const createBreakoutSession = async (breakoutSessionWrite: BreakoutSessionWrite, options?: RequestInit): Promise<BreakoutSessionRow> => {
+
+  return customFetch<BreakoutSessionRow>(getCreateBreakoutSessionUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(breakoutSessionWrite)
+  }
+);}
+
+
+
+
+
+export const getCreateBreakoutSessionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createBreakoutSession>>, TError,{data: BodyType<BreakoutSessionWrite>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createBreakoutSession>>, TError,{data: BodyType<BreakoutSessionWrite>}, TContext> => {
+
+const mutationKey = ['createBreakoutSession'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createBreakoutSession>>, {data: BodyType<BreakoutSessionWrite>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createBreakoutSession(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateBreakoutSessionMutationResult = NonNullable<Awaited<ReturnType<typeof createBreakoutSession>>>
+    export type CreateBreakoutSessionMutationBody = BodyType<BreakoutSessionWrite>
+    export type CreateBreakoutSessionMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a breakout session (admin only)
+ */
+export const useCreateBreakoutSession = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createBreakoutSession>>, TError,{data: BodyType<BreakoutSessionWrite>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createBreakoutSession>>,
+        TError,
+        {data: BodyType<BreakoutSessionWrite>},
+        TContext
+      > => {
+      return useMutation(getCreateBreakoutSessionMutationOptions(options));
+    }
+
+export const getUpdateBreakoutSessionUrl = (id: string,) => {
+
+
+
+
+  return `/api/breakouts/sessions/${id}`
+}
+
+/**
+ * @summary Update a breakout session (admin only)
+ */
+export const updateBreakoutSession = async (id: string,
+    breakoutSessionWrite: BreakoutSessionWrite, options?: RequestInit): Promise<BreakoutSessionRow> => {
+
+  return customFetch<BreakoutSessionRow>(getUpdateBreakoutSessionUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(breakoutSessionWrite)
+  }
+);}
+
+
+
+
+
+export const getUpdateBreakoutSessionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateBreakoutSession>>, TError,{id: string;data: BodyType<BreakoutSessionWrite>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateBreakoutSession>>, TError,{id: string;data: BodyType<BreakoutSessionWrite>}, TContext> => {
+
+const mutationKey = ['updateBreakoutSession'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateBreakoutSession>>, {id: string;data: BodyType<BreakoutSessionWrite>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateBreakoutSession(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateBreakoutSessionMutationResult = NonNullable<Awaited<ReturnType<typeof updateBreakoutSession>>>
+    export type UpdateBreakoutSessionMutationBody = BodyType<BreakoutSessionWrite>
+    export type UpdateBreakoutSessionMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update a breakout session (admin only)
+ */
+export const useUpdateBreakoutSession = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateBreakoutSession>>, TError,{id: string;data: BodyType<BreakoutSessionWrite>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateBreakoutSession>>,
+        TError,
+        {id: string;data: BodyType<BreakoutSessionWrite>},
+        TContext
+      > => {
+      return useMutation(getUpdateBreakoutSessionMutationOptions(options));
+    }
+
+export const getDeleteBreakoutSessionUrl = (id: string,) => {
+
+
+
+
+  return `/api/breakouts/sessions/${id}`
+}
+
+/**
+ * @summary Delete a breakout session (admin only)
+ */
+export const deleteBreakoutSession = async (id: string, options?: RequestInit): Promise<DeleteResult> => {
+
+  return customFetch<DeleteResult>(getDeleteBreakoutSessionUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteBreakoutSessionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteBreakoutSession>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteBreakoutSession>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['deleteBreakoutSession'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteBreakoutSession>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteBreakoutSession(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteBreakoutSessionMutationResult = NonNullable<Awaited<ReturnType<typeof deleteBreakoutSession>>>
+
+    export type DeleteBreakoutSessionMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a breakout session (admin only)
+ */
+export const useDeleteBreakoutSession = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteBreakoutSession>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteBreakoutSession>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getDeleteBreakoutSessionMutationOptions(options));
+    }
 

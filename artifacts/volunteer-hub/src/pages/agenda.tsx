@@ -1,7 +1,25 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'wouter';
 import { ChevronRight, MapPin, Clock, ArrowRight } from 'lucide-react';
-import { AGENDA, getItemStatus, toMinutes } from '@/data/event-data';
+import { useGetAgenda } from '@workspace/api-client-react';
+
+// ── Time helpers (kept local so the page works standalone) ───────────────────
+function toMinutes(hhmm: string): number {
+  const [h, m] = hhmm.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function getItemStatus(
+  startTime: string,
+  endTime: string,
+  nowMinutes: number
+): 'current' | 'next' | 'past' | 'future' {
+  const start = toMinutes(startTime);
+  const end = toMinutes(endTime);
+  if (nowMinutes >= start && nowMinutes < end) return 'current';
+  if (nowMinutes < start) return 'future';
+  return 'past';
+}
 
 function getNowMinutes(): number {
   const now = new Date();
@@ -23,6 +41,8 @@ export default function Agenda() {
   const currentRef = useRef<HTMLDivElement | null>(null);
   const scrolled = useRef(false);
 
+  const { data: agenda, isLoading, isError } = useGetAgenda();
+
   // Tick every 30 seconds
   useEffect(() => {
     const id = setInterval(() => setNowMinutes(getNowMinutes()), 30_000);
@@ -40,10 +60,12 @@ export default function Agenda() {
   // Find the first "future" item (for "next" labelling)
   let foundCurrent = false;
   let nextIndex = -1;
-  for (let i = 0; i < AGENDA.length; i++) {
-    const s = getItemStatus(AGENDA[i].startTime, AGENDA[i].endTime, nowMinutes);
-    if (s === 'current') { foundCurrent = true; break; }
-    if (s === 'future' && nextIndex === -1) { nextIndex = i; }
+  if (agenda) {
+    for (let i = 0; i < agenda.length; i++) {
+      const s = getItemStatus(agenda[i].start_time, agenda[i].end_time, nowMinutes);
+      if (s === 'current') { foundCurrent = true; break; }
+      if (s === 'future' && nextIndex === -1) { nextIndex = i; }
+    }
   }
   // If nothing is current, first future item is "next"
   const highlightNextIndex = !foundCurrent ? nextIndex : -1;
@@ -56,80 +78,89 @@ export default function Agenda() {
         <p className="text-xs text-muted-foreground font-mono mt-0.5">Customer Support Summit · Full-Day Schedule</p>
       </div>
 
-      <div className="p-4 space-y-2">
-        {AGENDA.map((item, idx) => {
-          const status = getItemStatus(item.startTime, item.endTime, nowMinutes);
-          const isNext = idx === highlightNextIndex;
-          const isCurrent = status === 'current';
-          const isPast = status === 'past';
-          const countdown = isNext ? getCountdown(item.startTime, nowMinutes) : null;
+      {isLoading && (
+        <div className="p-8 text-center text-muted-foreground font-mono text-sm">Loading schedule…</div>
+      )}
+      {isError && (
+        <div className="p-8 text-center text-destructive font-mono text-sm">Failed to load agenda. Please refresh.</div>
+      )}
 
-          const rowRef = (isCurrent || isNext) ? currentRef : undefined;
+      {agenda && (
+        <div className="p-4 space-y-2">
+          {agenda.map((item, idx) => {
+            const status = getItemStatus(item.start_time, item.end_time, nowMinutes);
+            const isNext = idx === highlightNextIndex;
+            const isCurrent = status === 'current';
+            const isPast = status === 'past';
+            const countdown = isNext ? getCountdown(item.start_time, nowMinutes) : null;
 
-          const borderClass = isCurrent
-            ? 'border-primary border-l-[5px] bg-primary/5'
-            : isNext
-            ? 'border-amber-400 border-l-[5px] dark:border-amber-400'
-            : isPast
-            ? 'border-border'
-            : 'border-border';
+            const rowRef = (isCurrent || isNext) ? currentRef : undefined;
 
-          if (item.isBreakout) {
-            return (
-              <Link key={item.id} href="/breakouts">
-                <div
-                  ref={rowRef as any}
-                  className={`group bg-card border-2 p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.15)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all cursor-pointer ${borderClass}`}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className="font-mono text-xs font-bold text-muted-foreground">{item.label}</span>
-                        {isCurrent && <span className="bg-primary text-primary-foreground font-mono text-[10px] font-black px-1.5 py-0.5 uppercase">NOW</span>}
-                        {isNext && <span className="bg-amber-400 text-black font-mono text-[10px] font-black px-1.5 py-0.5 uppercase">NEXT</span>}
+            const borderClass = isCurrent
+              ? 'border-primary border-l-[5px] bg-primary/5'
+              : isNext
+              ? 'border-amber-400 border-l-[5px] dark:border-amber-400'
+              : isPast
+              ? 'border-border opacity-50'
+              : 'border-border';
+
+            if (item.is_breakout) {
+              return (
+                <Link key={item.id} href="/breakouts">
+                  <div
+                    ref={rowRef as any}
+                    className={`group bg-card border-2 p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.15)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all cursor-pointer ${borderClass}`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <span className="font-mono text-xs font-bold text-muted-foreground">{item.label}</span>
+                          {isCurrent && <span className="bg-primary text-primary-foreground font-mono text-[10px] font-black px-1.5 py-0.5 uppercase">NOW</span>}
+                          {isNext && <span className="bg-amber-400 text-black font-mono text-[10px] font-black px-1.5 py-0.5 uppercase">NEXT</span>}
+                        </div>
+                        <h3 className="font-bold text-base leading-snug">{item.title}</h3>
+                        <p className="text-xs text-muted-foreground font-mono mt-1 flex items-center gap-1">
+                          <MapPin className="w-3 h-3 shrink-0" />{item.location}
+                        </p>
+                        <div className="mt-2 flex items-center gap-1 text-xs font-mono font-bold text-primary">
+                          <ArrowRight className="w-3.5 h-3.5" />
+                          Tap to see all breakout tracks
+                        </div>
                       </div>
-                      <h3 className="font-bold text-base leading-snug">{item.title}</h3>
-                      <p className="text-xs text-muted-foreground font-mono mt-1 flex items-center gap-1">
-                        <MapPin className="w-3 h-3 shrink-0" />{item.location}
-                      </p>
-                      <div className="mt-2 flex items-center gap-1 text-xs font-mono font-bold text-primary">
-                        <ArrowRight className="w-3.5 h-3.5" />
-                        Tap to see all breakout tracks
-                      </div>
+                      <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground shrink-0 mt-1 transition-colors" />
                     </div>
-                    <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground shrink-0 mt-1 transition-colors" />
                   </div>
-                </div>
-              </Link>
-            );
-          }
+                </Link>
+              );
+            }
 
-          return (
-            <div
-              key={item.id}
-              ref={rowRef as any}
-              className={`bg-card border-2 p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.15)] ${borderClass}`}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <span className="font-mono text-xs font-bold text-muted-foreground flex items-center gap-1">
-                      <Clock className="w-3 h-3" />{item.label}
-                    </span>
-                    {isCurrent && <span className="bg-primary text-primary-foreground font-mono text-[10px] font-black px-1.5 py-0.5 uppercase">NOW</span>}
-                    {isNext && <span className="bg-amber-400 text-black font-mono text-[10px] font-black px-1.5 py-0.5 uppercase">NEXT</span>}
-                    {countdown && <span className="text-amber-500 dark:text-amber-400 font-mono text-[10px] font-bold">{countdown}</span>}
+            return (
+              <div
+                key={item.id}
+                ref={rowRef as any}
+                className={`bg-card border-2 p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.15)] ${borderClass}`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <span className="font-mono text-xs font-bold text-muted-foreground flex items-center gap-1">
+                        <Clock className="w-3 h-3" />{item.label}
+                      </span>
+                      {isCurrent && <span className="bg-primary text-primary-foreground font-mono text-[10px] font-black px-1.5 py-0.5 uppercase">NOW</span>}
+                      {isNext && <span className="bg-amber-400 text-black font-mono text-[10px] font-black px-1.5 py-0.5 uppercase">NEXT</span>}
+                      {countdown && <span className="text-amber-500 dark:text-amber-400 font-mono text-[10px] font-bold">{countdown}</span>}
+                    </div>
+                    <h3 className="font-bold text-base leading-snug">{item.title}</h3>
+                    <p className="text-xs text-muted-foreground font-mono mt-1 flex items-center gap-1">
+                      <MapPin className="w-3 h-3 shrink-0" />{item.location}
+                    </p>
                   </div>
-                  <h3 className="font-bold text-base leading-snug">{item.title}</h3>
-                  <p className="text-xs text-muted-foreground font-mono mt-1 flex items-center gap-1">
-                    <MapPin className="w-3 h-3 shrink-0" />{item.location}
-                  </p>
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       <div className="h-6" />
     </div>
