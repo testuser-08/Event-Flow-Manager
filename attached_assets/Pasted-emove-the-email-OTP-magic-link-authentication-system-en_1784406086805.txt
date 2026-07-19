@@ -1,0 +1,69 @@
+emove the email/OTP/magic-link authentication system entirely and replace it with a simpler roster-based login. Please implement exactly as follows:
+
+New login flow
+
+
+Login screen shows a single field: "Work email"
+User types their email and clicks "Enter" (no code, no link, no email is ever sent as part of login)
+On submit, the server:
+
+Trims whitespace and lowercases the entered email before comparing (so "Mimansa.Mishra@sap.com" and "mimansa.mishra@sap.com " both match correctly)
+Rejects immediately, with a clear on-screen message, if the email doesn't end in "@sap.com"
+Looks up that exact (lowercased) email in the roster table
+If not found: show a clear error like "This email isn't on the volunteer roster. Contact your organizer if you believe this is a mistake." (not a blank error box, not a raw error code)
+If found: log them in and take them straight to their assigned channel(s)
+
+
+
+
+
+Session handling (important — no OTP means no built-in Supabase Auth session)
+
+
+Since we're removing Supabase's email auth, implement a lightweight custom session instead: on successful roster match, create a signed session token (e.g. a server-signed cookie or JWT) containing their email and role, so they don't have to re-enter their email every time they reopen the app
+Session should persist across page reloads and app reopens (don't make people re-login constantly)
+Include a visible "Log out" option that clears this session
+
+
+Permissions logic
+
+
+A person's workstream field(s) from the roster determine their chat/write access — they can post in any channel matching their assigned workstream(s)
+Every logged-in person gets read-only access to all other channels (can scroll and read, cannot post, no "send message" box shown, or shown but disabled with a tooltip like "Read-only — this isn't your workstream")
+If is_admin = TRUE for their email: grant write access to every channel (not just their own) plus access to the /admin dashboard (Active Alerts, channel overview, broadcast box, roster upload)
+A person can be listed under multiple workstream rows in the roster (same email, different workstream values) — they should get write access to all of those, not just one
+
+
+Roster upload behavior
+
+
+When a new roster CSV is uploaded, it should fully replace the existing roster (not just add to it) — same logic issue as the earlier channel-seeding bug, please don't repeat that mistake here
+If someone is removed from the roster in a re-upload, they should lose access on their next action (or immediately if feasible) — don't leave orphaned sessions with access to channels they're no longer assigned to
+Roster upload should validate the CSV has exactly these columns: name, email, workstream, is_admin — and show a clear error if a row is missing an email or has a workstream name that doesn't match an existing channel, rather than silently failing or crashing
+
+
+Basic abuse protection (since anyone typing a listed email now gets straight in, with no proof of inbox ownership)
+
+
+Add basic rate-limiting on the login endpoint (e.g. max ~10 attempts per minute per IP) so this can't be used to script through guessing many emails quickly
+Do NOT reveal in the error message whether an email format is valid but just missing from the roster vs. completely invalid — keep the message generic to avoid helping someone enumerate valid SAP email patterns
+
+
+Error handling (general)
+
+
+Any error shown to the user must be a real, readable sentence — not an empty box, not {}, not a raw stack trace. Please explicitly test the "wrong email" and "email not in roster" cases and confirm the message shown is legible before telling me it's done.
+
+
+What to explicitly remove
+
+
+The Supabase magic-link email template changes we made earlier are no longer needed — you can leave the Supabase Auth email settings as-is (harmless if unused) or remove them, whichever is less risky to touch right now
+Remove any UI for "enter code" or "check your email" messaging
+
+
+After you're done, please confirm back to me:
+
+
+That old sessions/logins from the previous OTP system won't break or conflict with this new system
+That you tested: (a) a valid roster email logging in successfully, (b) a non-roster @sap.com email being rejected with a clear message, (c) a non-@sap.com email being rejected, (d) an admin email getting dashboard access, (e) a regular volunteer email getting write access only to their own channel(s) and read-only elsewhere

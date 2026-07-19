@@ -1,198 +1,135 @@
 import { useState, useRef } from 'react';
-import { useListVolunteers, useUpdateVolunteer, useDeleteVolunteer } from '@workspace/api-client-react';
-import { getListVolunteersQueryKey } from '@workspace/api-client-react';
+import { useListVolunteers, useDeleteVolunteer } from '@workspace/api-client-react';
 import { useQueryClient } from '@tanstack/react-query';
+import { getListVolunteersQueryKey } from '@workspace/api-client-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Link } from 'wouter';
-import { ArrowLeft, Upload, Trash2, Search, UserCog, Shield } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Switch } from '@/components/ui/switch';
-import { useToast } from '@/hooks/use-toast';
+import { ArrowLeft, Upload, Trash2, ShieldCheck, Shield } from 'lucide-react';
+
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
 
 export default function AdminRoster() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const { data: volunteers, isLoading } = useListVolunteers();
-  const updateVolunteer = useUpdateVolunteer();
-  const deleteVolunteer = useDeleteVolunteer();
   const queryClient = useQueryClient();
-  const { toast } = useToast();
-  
-  const [isUploading, setIsUploading] = useState(false);
+  const { data: volunteers, isLoading } = useListVolunteers();
+  const { mutate: deleteVolunteer } = useDeleteVolunteer();
+
+  const [uploading, setUploading] = useState(false);
+  const [uploadResult, setUploadResult] = useState<{ inserted?: number; errors?: string[] } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setIsUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
+    setUploading(true);
+    setUploadResult(null);
 
+    const form = new FormData();
+    form.append('file', file);
+
+    const token = localStorage.getItem('vhub_token');
     try {
-      const res = await fetch(`${import.meta.env.BASE_URL}api/admin/roster`, {
+      const res = await fetch(`${BASE}/api/admin/roster`, {
         method: 'POST',
-        body: formData,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: form,
       });
-      
-      if (!res.ok) throw new Error('Upload failed');
-      
       const result = await res.json();
-      toast({
-        title: 'Roster Updated',
-        description: `Added: ${result.inserted}. Skipped: ${result.skipped}. Errors: ${result.errors.length}`,
-      });
-      
+      setUploadResult(result);
       queryClient.invalidateQueries({ queryKey: getListVolunteersQueryKey() });
-    } catch (err) {
-      console.error(err);
-      toast({
-        title: 'Upload Failed',
-        description: 'Could not process the CSV file.',
-        variant: 'destructive',
-      });
+    } catch {
+      setUploadResult({ errors: ['Upload failed. Please try again.'] });
     } finally {
-      setIsUploading(false);
+      setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
-  const handleUpdateRole = (id: string, is_admin: boolean) => {
-    updateVolunteer.mutate({ id, data: { is_admin } }, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getListVolunteersQueryKey() });
-      }
+  const handleDelete = (id: string, name: string) => {
+    if (!confirm(`Remove ${name} from the roster?`)) return;
+    deleteVolunteer({ id }, {
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: getListVolunteersQueryKey() }),
     });
   };
-
-  const handleUpdateWorkstream = (id: string, workstream: string) => {
-    updateVolunteer.mutate({ id, data: { workstream: workstream || null } }, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getListVolunteersQueryKey() });
-      }
-    });
-  };
-
-  const handleDelete = (id: string) => {
-    if (!confirm('Remove this volunteer from the system?')) return;
-    
-    deleteVolunteer.mutate({ id }, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: getListVolunteersQueryKey() });
-      }
-    });
-  };
-
-  const filteredVolunteers = volunteers?.filter(v => 
-    v.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    v.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (v.workstream && v.workstream.toLowerCase().includes(searchTerm.toLowerCase()))
-  ) || [];
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-muted/20">
-      {/* Header */}
+    <div className="flex-1 flex flex-col h-full bg-muted/20 overflow-y-auto">
       <div className="bg-card border-b-2 border-border p-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <Link href="/admin" className="p-2 -ml-2 hover:bg-muted rounded-none transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="font-black text-xl uppercase tracking-tighter flex items-center gap-2">
-            <UserCog className="w-5 h-5" /> Roster
-          </h1>
+          <h1 className="font-black text-xl uppercase tracking-tighter">Volunteer Roster</h1>
         </div>
-        
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="rounded-none border-2 font-bold uppercase text-xs cursor-pointer"
-          disabled={isUploading}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <Upload className="w-4 h-4 mr-2" />
-          {isUploading ? 'Uploading...' : 'CSV Upload'}
-        </Button>
-        <input 
-          type="file" 
-          accept=".csv" 
-          className="hidden" 
-          ref={fileInputRef} 
-          onChange={handleUpload} 
-        />
+
+        <div>
+          <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleUpload} />
+          <Button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            size="sm"
+            className="border-2 rounded-none font-bold uppercase gap-2"
+          >
+            <Upload className="w-4 h-4" />
+            {uploading ? 'Uploading…' : 'Upload CSV'}
+          </Button>
+        </div>
       </div>
 
-      <div className="p-4 flex-1 flex flex-col min-h-0">
-        <div className="relative mb-4 shrink-0">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search volunteers..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 border-2 rounded-none font-mono focus-visible:ring-0 focus-visible:border-primary h-12"
-          />
-        </div>
+      <div className="p-4 space-y-4">
+        {/* Upload result feedback */}
+        {uploadResult && (
+          <div className={`border-2 p-3 font-mono text-sm ${uploadResult.errors?.length ? 'border-amber-500 bg-amber-50 dark:bg-amber-950' : 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950'}`}>
+            {uploadResult.inserted !== undefined && (
+              <p className="font-bold mb-1">{uploadResult.inserted} volunteer{uploadResult.inserted !== 1 ? 's' : ''} imported (roster fully replaced).</p>
+            )}
+            {uploadResult.errors && uploadResult.errors.length > 0 && (
+              <ul className="list-disc list-inside space-y-1 text-amber-800 dark:text-amber-200">
+                {uploadResult.errors.map((err, i) => <li key={i}>{err}</li>)}
+              </ul>
+            )}
+          </div>
+        )}
 
-        <div className="flex-1 overflow-y-auto border-2 border-border bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
-          {isLoading ? (
-            <div className="p-8 text-center font-mono text-muted-foreground">Loading roster...</div>
-          ) : filteredVolunteers.length === 0 ? (
-            <div className="p-8 text-center font-mono text-muted-foreground">No volunteers found.</div>
-          ) : (
-            <div className="divide-y-2 divide-border">
-              {filteredVolunteers.map((vol) => (
-                <div key={vol.id} className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-muted/50 transition-colors">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold uppercase tracking-tight truncate">{vol.name}</h3>
-                      {vol.is_admin && (
-                        <Shield className="w-3.5 h-3.5 text-destructive shrink-0" />
-                      )}
-                    </div>
-                    <div className="text-xs font-mono text-muted-foreground truncate">{vol.email}</div>
+        <p className="text-xs text-muted-foreground font-mono">
+          CSV format: <code>name, email, workstream, is_admin</code>. Multiple rows per email = multiple workstreams. Uploading replaces the entire roster.
+        </p>
+
+        {isLoading ? (
+          <div className="font-mono text-sm text-muted-foreground">Loading roster...</div>
+        ) : !volunteers?.length ? (
+          <div className="bg-card border-2 border-dashed border-border p-8 text-center text-muted-foreground font-mono text-sm">
+            No volunteers yet. Upload a CSV to get started.
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {volunteers.map((v: any) => (
+              <div key={v.id} className="bg-card border-2 border-border p-3 flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-sm truncate">{v.name}</span>
+                    {v.is_admin && <ShieldCheck className="w-4 h-4 text-primary shrink-0" />}
                   </div>
-                  
-                  <div className="flex flex-wrap items-center gap-2 sm:gap-4 shrink-0">
-                    <div className="flex items-center gap-2 bg-muted px-2 py-1 border-2 border-border">
-                      <span className="text-xs font-bold uppercase text-muted-foreground">Admin</span>
-                      <Switch 
-                        checked={vol.is_admin}
-                        onCheckedChange={(checked) => handleUpdateRole(vol.id, checked)}
-                      />
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Input 
-                        defaultValue={vol.workstream || ''}
-                        placeholder="Workstream..."
-                        className="h-8 w-32 sm:w-40 text-xs font-mono rounded-none border-2 px-2"
-                        onBlur={(e) => {
-                          if (e.target.value !== vol.workstream) {
-                            handleUpdateWorkstream(vol.id, e.target.value);
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.currentTarget.blur();
-                          }
-                        }}
-                      />
-                      
-                      <Button 
-                        variant="destructive" 
-                        size="icon" 
-                        className="h-8 w-8 rounded-none border-2 shrink-0"
-                        onClick={() => handleDelete(vol.id)}
-                        title="Remove Volunteer"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
+                  <p className="text-xs font-mono text-muted-foreground truncate">{v.email}</p>
+                  {(v.workstreams ?? []).length > 0 && (
+                    <p className="text-xs font-mono text-primary mt-0.5">
+                      <Shield className="w-3 h-3 inline mr-1" />
+                      {(v.workstreams ?? []).join(', ')}
+                    </p>
+                  )}
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="text-destructive hover:bg-destructive/10 shrink-0"
+                  onClick={() => handleDelete(v.id, v.name)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

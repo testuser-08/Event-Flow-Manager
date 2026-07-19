@@ -1,74 +1,41 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Redirect } from 'wouter';
-import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
-type Step = 'email' | 'verify' | 'error';
-
 export default function Login() {
-  const { session, isLoading } = useAuth();
+  const { volunteer, isLoading, login } = useAuth();
   const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
-  const [step, setStep] = useState<Step>('email');
-  const [sending, setSending] = useState(false);
-  const [verifying, setVerifying] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
   if (isLoading) return null;
-  if (session) return <Redirect to="/channels" />;
+  if (volunteer) return <Redirect to="/channels" />;
 
-  const handleSend = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
     const trimmed = email.trim().toLowerCase();
+    if (!trimmed) {
+      setErrorMsg('Please enter your work email.');
+      return;
+    }
     if (!trimmed.endsWith('@sap.com')) {
-      setErrorMsg('Only @sap.com email addresses are allowed.');
+      setErrorMsg('Only @sap.com email addresses are accepted.');
       return;
     }
 
-    setSending(true);
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email: trimmed,
-        options: { emailRedirectTo: window.location.origin },
-      });
-      if (error) throw error;
-      setStep('verify');
-    } catch (err: any) {
-      console.error('[Login] signInWithOtp error:', err);
-      setErrorMsg(err.message || 'Could not send login email. Please try again.');
-    } finally {
-      setSending(false);
-    }
-  };
+    setSubmitting(true);
+    const { error } = await login(trimmed);
+    setSubmitting(false);
 
-  const handleVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMsg('');
-    const code = otp.trim();
-    if (code.length < 6) {
-      setErrorMsg('Enter the login code from your email.');
-      return;
-    }
-    setVerifying(true);
-    try {
-      const { error } = await supabase.auth.verifyOtp({
-        email: email.trim().toLowerCase(),
-        token: code,
-        type: 'email',
-      });
-      if (error) throw error;
-      // onAuthStateChange in AuthContext will pick up the new session automatically
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Invalid or expired code. Try requesting a new one.');
-    } finally {
-      setVerifying(false);
+    if (error) {
+      setErrorMsg(error);
     }
   };
 
@@ -86,100 +53,38 @@ export default function Login() {
       </div>
 
       <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
-
-        {/* Step 1 — Enter email */}
-        {step === 'email' && (
-          <form onSubmit={handleSend} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="font-semibold text-sm">Work email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@sap.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-11 text-base"
-                required
-                autoFocus
-                data-testid="input-email"
-              />
-            </div>
-
-            {errorMsg && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription className="text-sm">{errorMsg}</AlertDescription>
-              </Alert>
-            )}
-
-            <Button
-              type="submit"
-              className="w-full h-11 text-base font-semibold"
-              disabled={sending}
-              data-testid="button-submit"
-            >
-              {sending ? 'Sending…' : 'Send login code'}
-            </Button>
-            <p className="text-center text-xs text-muted-foreground">Only @sap.com addresses are accepted</p>
-          </form>
-        )}
-
-        {/* Step 2 — Enter OTP code */}
-        {step === 'verify' && (
-          <div className="space-y-5">
-            <div className="flex items-start gap-3 p-3 bg-primary/10 rounded-md border border-primary/20">
-              <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-              <div>
-                <p className="text-sm font-semibold text-foreground">Email sent to {email}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Check your inbox for a 6-digit code <strong>or</strong> click the magic link in the email — either works.
-                </p>
-              </div>
-            </div>
-
-            <form onSubmit={handleVerify} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="otp" className="font-semibold text-sm">Enter your login code</Label>
-                <Input
-                  id="otp"
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="12345678"
-                  maxLength={8}
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                  className="h-11 text-xl tracking-[0.4em] font-mono text-center"
-                  autoFocus
-                  data-testid="input-otp"
-                />
-              </div>
-
-              {errorMsg && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription className="text-sm">{errorMsg}</AlertDescription>
-                </Alert>
-              )}
-
-              <Button
-                type="submit"
-                className="w-full h-11 text-base font-semibold"
-                disabled={verifying}
-                data-testid="button-verify"
-              >
-                {verifying ? 'Verifying…' : 'Sign in'}
-              </Button>
-            </form>
-
-            <button
-              onClick={() => { setStep('email'); setOtp(''); setErrorMsg(''); }}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors mx-auto"
-              data-testid="button-back"
-            >
-              <ArrowLeft className="w-3 h-3" /> Use a different email
-            </button>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="email" className="font-semibold text-sm">Work email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@sap.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="h-11 text-base"
+              required
+              autoFocus
+              autoComplete="email"
+            />
           </div>
-        )}
+
+          {errorMsg && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="text-sm">{errorMsg}</AlertDescription>
+            </Alert>
+          )}
+
+          <Button
+            type="submit"
+            className="w-full h-11 text-base font-semibold"
+            disabled={submitting}
+          >
+            {submitting ? 'Signing in…' : 'Enter'}
+          </Button>
+          <p className="text-center text-xs text-muted-foreground">Only @sap.com addresses are accepted</p>
+        </form>
       </div>
     </div>
   );

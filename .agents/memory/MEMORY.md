@@ -1,2 +1,2 @@
-- [Volunteer Hub Supabase setup](volunteer-hub-supabase.md) — tables not auto-created; user must run supabase/setup.sql once manually.
+- [Volunteer Hub Supabase setup](volunteer-hub-supabase.md) — tables not auto-created; run setup.sql once, then migration-v2.sql for JWT auth swap.
 - [Zod v3 + Orval UUID format](orval-zod-compat.md) — `format: uuid/email` in OpenAPI spec causes orval to emit `zod.uuid()` which doesn't exist in Zod v3; strip those formats from property schemas.

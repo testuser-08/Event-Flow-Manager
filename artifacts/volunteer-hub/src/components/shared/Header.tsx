@@ -14,7 +14,7 @@ export default function Header() {
         </Link>
         {volunteer && (
           <span className="text-xs font-mono text-muted-foreground">
-            {volunteer.name} • {volunteer.workstream || 'Unassigned'}
+            {volunteer.name} • {volunteer.workstreams.length > 0 ? volunteer.workstreams.join(', ') : 'No workstream'}
           </span>
         )}
       </div>

@@ -16,13 +16,13 @@ import { useEffect } from 'react';
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ component: Component, adminOnly = false, ...rest }: any) {
-  const { session, isLoading, isAdmin } = useAuth();
-  
+  const { volunteer, isLoading, isAdmin } = useAuth();
+
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center font-mono">LOADING...</div>;
   }
-  
-  if (!session) {
+
+  if (!volunteer) {
     return <Redirect to="/login" />;
   }
 
@@ -42,16 +42,16 @@ function SetupTrigger() {
 }
 
 function Router() {
-  const { session } = useAuth();
+  const { volunteer } = useAuth();
 
   return (
     <div className="min-h-[100dvh] flex flex-col w-full max-w-md mx-auto sm:max-w-xl md:max-w-2xl bg-background border-x-2 border-border shadow-2xl relative">
       <SetupTrigger />
-      {session && <Header />}
+      {volunteer && <Header />}
       <main className="flex-1 flex flex-col relative overflow-hidden">
         <Switch>
           <Route path="/login" component={Login} />
-          
+
           <Route path="/" component={() => <Redirect to="/channels" />} />
           <Route path="/channels">
             {(params) => <ProtectedRoute component={ChannelsList} {...params} />}
@@ -59,7 +59,7 @@ function Router() {
           <Route path="/channels/:slug">
             {(params) => <ProtectedRoute component={ChannelDetail} {...params} />}
           </Route>
-          
+
           <Route path="/admin">
             {(params) => <ProtectedRoute component={AdminDashboard} adminOnly {...params} />}
           </Route>
