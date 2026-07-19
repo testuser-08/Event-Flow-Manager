@@ -1,0 +1,46 @@
+Please switch the deployment plan to GitHub + Vercel (free tier), not Replit's Autoscale/Static deployment. Do the following:
+
+1. Push the codebase to GitHub
+
+
+Create a new GitHub repository for this project (ask me to authorize/connect GitHub if you need permission)
+Push the current, fully working codebase to it as the main branch
+Make sure .env files or anything containing secrets (Supabase keys, session secret) are NOT committed — add them to .gitignore if they aren't already excluded
+
+
+2. Make sure it can run locally on my own computer too
+
+
+Add a clear README.md at the root of the project with simple, step-by-step instructions for running this app on a personal laptop from scratch, assuming I have never set up a Node.js project before. Include:
+
+What software needs to be installed first (e.g. Node.js version required, and a link to download it)
+The exact terminal commands to install dependencies (e.g. npm install)
+How to set up a local .env file with the required variables (list each variable name needed — Supabase URL, Supabase key, session secret, etc. — without their actual secret values, just placeholders showing the format)
+The exact command to start the app locally (e.g. npm run dev) and what URL to open in the browser afterward (e.g. http://localhost:3000)
+
+
+
+Please actually verify these instructions work by mentally (or actually) walking through them as if you were someone who has never touched this project before
+
+
+3. Deploy to Vercel (free tier)
+
+
+Connect the new GitHub repository to Vercel
+Configure the build so both the frontend and the API server routes deploy correctly on Vercel (confirm whether the API server needs to be adapted into Vercel serverless functions, or if it already works as-is — tell me if any code changes are needed here)
+Add the required environment variables directly in Vercel's project settings (Project → Settings → Environment Variables) — same values currently used (Supabase URL, Supabase anon key, service role key, session secret)
+Deploy, and give me the final live URL (should look like something.vercel.app)
+Confirm the live Vercel URL actually works end to end — test that the login page loads and a login attempt succeeds — before telling me it's done
+
+
+After this is done
+
+Please tell me clearly:
+
+
+The GitHub repo link
+The final Vercel live URL
+Confirm this deployment is genuinely free (Vercel's free "Hobby" tier, no payment method required)
+
+
+Once I have the Vercel URL, I still need to separately update Supabase's Authentication → URL Configuration to match it — please remind me of this as your final step.

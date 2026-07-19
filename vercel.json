@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "buildCommand": "pnpm --filter @workspace/volunteer-hub run build",
+  "outputDirectory": "artifacts/volunteer-hub/dist/public",
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/handler" }
+  ],
+  "functions": {
+    "api/handler.ts": {
+      "maxDuration": 30,
+      "memory": 512
+    }
+  },
+  "env": {
+    "BASE_PATH": "/"
+  }
+}
