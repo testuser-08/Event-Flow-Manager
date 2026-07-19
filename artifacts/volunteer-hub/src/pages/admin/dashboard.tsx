@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link } from 'wouter';
-import { ShieldAlert, AlertTriangle, AlertCircle, Check, Send, Users, WifiOff, Wifi } from 'lucide-react';
+import { ShieldAlert, AlertTriangle, AlertCircle, Check, Send, Users, WifiOff, Wifi, LayoutList } from 'lucide-react';
 import { format } from 'date-fns';
 import type { ConnectionStatus } from '@/hooks/use-messages';
 import { toast } from 'sonner';
@@ -154,11 +154,18 @@ export default function AdminDashboard() {
         <h1 className="font-black text-xl uppercase tracking-tighter flex items-center gap-2">
           <ShieldAlert className="w-5 h-5 text-destructive" /> Admin Control
         </h1>
-        <Link href="/admin/roster">
-          <Button variant="outline" size="sm" className="border-2 rounded-none font-bold uppercase gap-2">
-            <Users className="w-4 h-4" /> Roster
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/admin/workstreams">
+            <Button variant="outline" size="sm" className="border-2 rounded-none font-bold uppercase gap-2">
+              <LayoutList className="w-4 h-4" /> Teams
+            </Button>
+          </Link>
+          <Link href="/admin/roster">
+            <Button variant="outline" size="sm" className="border-2 rounded-none font-bold uppercase gap-2">
+              <Users className="w-4 h-4" /> Roster
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Reconnect banner */}

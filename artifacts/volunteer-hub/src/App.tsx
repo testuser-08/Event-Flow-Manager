@@ -9,6 +9,7 @@ import ChannelsList from '@/pages/channels';
 import ChannelDetail from '@/pages/channel';
 import AdminDashboard from '@/pages/admin/dashboard';
 import AdminRoster from '@/pages/admin/roster';
+import AdminWorkstreams from '@/pages/admin/workstreams';
 import Agenda from '@/pages/agenda';
 import Breakouts from '@/pages/breakouts';
 import Header from '@/components/shared/Header';
@@ -78,6 +79,9 @@ function Router() {
           </Route>
           <Route path="/admin/roster">
             {(params) => <ProtectedRoute component={AdminRoster} adminOnly {...params} />}
+          </Route>
+          <Route path="/admin/workstreams">
+            {(params) => <ProtectedRoute component={AdminWorkstreams} adminOnly {...params} />}
           </Route>
 
           <Route component={NotFound} />
